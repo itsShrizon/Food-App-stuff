@@ -1,0 +1,15 @@
+male
+1990-07-20
+155
+cm
+155
+cm
+90
+kg
+70
+kg
+maintain
+1
+year
+slow
+light
