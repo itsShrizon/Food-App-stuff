@@ -82,11 +82,29 @@ def onboarding(
     """
     if collected_data is None:
         collected_data = {}
+    else:
+        collected_data = dict(collected_data)  # Create a copy to avoid mutating input
     
     if conversation_history is None:
         conversation_history = []
+    else:
+        conversation_history = list(conversation_history)  # Create a copy to avoid mutating input
 
-    # Determine next field to collect
+    # Extract and validate data from user message FIRST
+    # Determine which field we're currently collecting
+    current_field = None
+    for field in ONBOARDING_FIELDS:
+        if field not in collected_data:
+            current_field = field
+            break
+
+    # Try to extract value from user message if we have a field to collect
+    if current_field:
+        extracted_value = _extract_field_value(user_message, current_field, collected_data)
+        if extracted_value is not None:
+            collected_data[current_field] = extracted_value
+
+    # Now determine next field to collect AFTER extraction
     next_field = None
     for field in ONBOARDING_FIELDS:
         if field not in collected_data:
@@ -106,7 +124,7 @@ def onboarding(
     # Build system prompt with context
     collected_fields = list(collected_data.keys())
     system_prompt = SYSTEM_PROMPT.format(
-        current_field=next_field,
+        current_field=next_field if next_field else "complete",
         collected_fields=", ".join(collected_fields) if collected_fields else "none"
     )
 
@@ -123,12 +141,6 @@ def onboarding(
     # Update conversation history
     conversation_history.append({"role": "user", "content": user_message})
     conversation_history.append({"role": "assistant", "content": ai_message})
-
-    # Extract and validate data from user message
-    extracted_value = _extract_field_value(user_message, next_field, collected_data)
-    
-    if extracted_value is not None:
-        collected_data[next_field] = extracted_value
 
     return {
         'message': ai_message,
@@ -159,10 +171,10 @@ def _extract_field_value(
 
     # Gender extraction
     if field_name == 'gender':
-        if any(word in user_message_lower for word in ['male', 'man', 'boy']):
-            return 'male'
-        elif any(word in user_message_lower for word in ['female', 'woman', 'girl']):
+        if any(word in user_message_lower for word in ['female', 'woman', 'girl']):
             return 'female'
+        elif any(word in user_message_lower for word in ['male', 'man', 'boy']):
+            return 'male'
         elif any(word in user_message_lower for word in ['other', 'non-binary', 'prefer not']):
             return 'others'
 
