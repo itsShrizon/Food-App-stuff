@@ -117,7 +117,7 @@ class TestLLMExtraction:
     @patch("onboarding.chatbot")
     def test_extract_multiple_fields(self, mock_chatbot):
         """Test extracting multiple fields at once."""
-        mock_chatbot.return_value = '{"gender": "female", "date_of_birth": "1990-07-20", "current_weight": 65, "current_weight_unit": "kg"}'
+        mock_chatbot.return_value = '{"gender": "female", "date_of_birth": "1990-07-20", "current_weight": "65 kg"}'
         
         conversation = [
             {"role": "assistant", "content": "Tell me about yourself"},
@@ -127,7 +127,7 @@ class TestLLMExtraction:
         result = _extract_data_with_llm(conversation)
         assert result.get("gender") == "female"
         assert result.get("date_of_birth") == "1990-07-20"
-        assert result.get("current_weight") == 65
+        assert result.get("current_weight") == "65 kg"
 
 
 class TestExtractFieldValue:
@@ -197,6 +197,9 @@ class TestOnboarding:
     @patch("onboarding.chatbot")
     def test_onboarding_completion(self, mock_chatbot):
         """Test onboarding when all fields are collected."""
+        # Mock extraction that doesn't return any new fields (all already collected)
+        mock_chatbot.return_value = '{}'
+        
         all_fields_collected = {field: "test_value" for field in ONBOARDING_FIELDS}
 
         result = onboarding(
@@ -206,7 +209,7 @@ class TestOnboarding:
 
         assert result["is_complete"] is True
         assert result["next_field"] is None
-        assert "complete" in result["message"].lower()
+        assert "complete" in result["message"].lower() or "information" in result["message"].lower()
 
     @patch("onboarding.chatbot")
     def test_onboarding_progressive_collection(self, mock_chatbot):
@@ -256,56 +259,49 @@ class TestOnboardingIntegration:
     @patch("onboarding.chatbot")
     def test_full_onboarding_flow(self, mock_chatbot):
         """Test complete onboarding flow from start to finish."""
-        mock_chatbot.return_value = "Next question..."
+        # Mock extraction to return all fields at once
+        mock_chatbot.side_effect = [
+            "Welcome! Let's get started...",  # start_onboarding greeting
+            json.dumps({
+                "gender": "male",
+                "date_of_birth": "1990-01-01",
+                "current_height": "180 cm",
+                "current_weight": "75 kg",
+                "target_weight": "70 kg",
+                "goal": "lose weight",
+                "target_speed": "normal",
+                "activity_level": "moderate"
+            }),  # extraction response
+        ]
 
         # Start onboarding
         result = start_onboarding()
         assert not result["is_complete"]
 
-        # Simulate answering all questions
-        test_responses = {
-            "gender": "male",
-            "date_of_birth": "1990-01-01",
-            "image": "skip",
-            "current_height": "180",
-            "current_height_unit": "cm",
-            "target_height": "180",
-            "target_height_unit": "cm",
-            "current_weight": "75",
-            "current_weight_unit": "kg",
-            "target_weight": "70",
-            "target_weight_unit": "kg",
-            "goal": "lose weight",
-            "target_timeline_value": "3",
-            "target_timeline_unit": "months",
-            "target_speed": "normal",
-            "activity_level": "moderate",
-        }
+        # Provide all answers in one message
+        result = onboarding(
+            "I'm a male born on 1990-01-01, currently 180 cm tall and 75 kg. I want to lose weight to 70 kg at a normal pace. I'm moderately active.",
+            collected_data=result["collected_data"],
+            conversation_history=result["conversation_history"],
+        )
 
-        for field, response in test_responses.items():
-            result = onboarding(
-                response,
-                collected_data=result["collected_data"],
-                conversation_history=result["conversation_history"],
-            )
-
-        # Verify all required fields are collected (image is optional, so 14 fields)
-        assert len(result["collected_data"]) >= 14
+        # Verify all required fields are collected
+        assert len(result["collected_data"]) == len(ONBOARDING_FIELDS)
         assert result["is_complete"] is True
 
     def test_onboarding_fields_completeness(self):
         """Test that all required onboarding fields are defined."""
-        expected_fields = [
+        expected_fields = (
             'gender', 'date_of_birth',
-            'current_height', 'current_height_unit',
-            'target_height', 'target_height_unit',
-            'current_weight', 'current_weight_unit',
-            'target_weight', 'target_weight_unit',
-            'goal', 'target_timeline_value', 'target_timeline_unit',
-            'target_speed', 'activity_level'
-        ]
+            'current_height', 
+            'current_weight', 
+            'target_weight', 
+            'goal', 
+            'target_speed', 
+            'activity_level'
+        )
 
-        assert list(ONBOARDING_FIELDS) == expected_fields
+        assert ONBOARDING_FIELDS == expected_fields
 
 
 if __name__ == "__main__":
