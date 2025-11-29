@@ -8,12 +8,12 @@ from LLM_shared import chatbot
 
 ONBOARDING_FIELDS = (
     'gender', 'date_of_birth',
-    'current_height', 'current_height_unit',
-    'target_height', 'target_height_unit',
-    'current_weight', 'current_weight_unit',
-    'target_weight', 'target_weight_unit',
-    'goal', 'target_timeline_value', 'target_timeline_unit',
-    'target_speed', 'activity_level'
+    'current_height', 
+    'current_weight', 
+    'target_weight', 
+    'goal', 
+    'target_speed', 
+    'activity_level'
 )
 
 EXTRACTION_SYSTEM_PROMPT = """You are a data extraction AI. Extract fitness onboarding information from the conversation.
@@ -21,17 +21,10 @@ EXTRACTION_SYSTEM_PROMPT = """You are a data extraction AI. Extract fitness onbo
 Required fields to extract:
 - gender: male, female, or others
 - date_of_birth: YYYY-MM-DD format
-- current_height: numeric value
-- current_height_unit: "cm" or "inch"
-- target_height: numeric value
-- target_height_unit: "cm" or "inch"
-- current_weight: numeric value
-- current_weight_unit: "kg" or "lbs"
-- target_weight: numeric value
-- target_weight_unit: "kg" or "lbs"
-- goal: "lose_weight", "maintain", or "gain_weight"
-- target_timeline_value: numeric value
-- target_timeline_unit: "days", "weeks", "months", or "years"
+- current_height: numeric value and unit
+- current_weight: numeric value and unit
+- target_weight: numeric value and unit
+- goal: "lose weight", "maintain", or "gain weight" 
 - target_speed: "slow", "normal", or "fast"
 - activity_level: "sedentary", "light", "moderate", or "active"
 
@@ -39,7 +32,7 @@ IMPORTANT RULES:
 1. Extract ALL information mentioned in the conversation
 2. Convert dates to YYYY-MM-DD format (e.g., "20 july 2000" → "2000-07-20")
 3. Convert heights: feet/inches to inches (e.g., "5 foot 9 inch" → 69 inches, unit: "inch")
-4. If target height/weight not mentioned, use current values
+4. If target height/weight not mentioned, ask for it later
 5. If target_speed not mentioned, default to "normal"
 6. Only return fields that have been mentioned or can be inferred
 7. Return ONLY valid JSON, no explanations
@@ -59,13 +52,12 @@ Required information to collect:
 ✓ Current weight and unit (kg/lbs)
 ✓ Target weight and unit (if different from current)
 ✓ Fitness goal (lose weight/maintain/gain weight)
-✓ Timeline to achieve goal
 ✓ Preferred pace (slow/normal/fast)
 ✓ Current activity level (sedentary/light/moderate/active)
 
 RULES:
 1. Be conversational and natural - DON'T sound like a form
-2. Ask 2-3 related questions together when it makes sense
+2. Ask single, clear questions to get one piece of info at a time
 3. If user provides multiple pieces of info at once, acknowledge all of it
 4. Keep responses brief and friendly
 5. When all info is collected, say "Thank you! I have all the information I need."
@@ -78,7 +70,7 @@ Be natural and conversational!"""
 
 def _extract_data_with_llm(
     conversation_history: List[Dict[str, str]],
-    model: str = "gpt-4o-mini",
+    model: str = "gpt-4.1-nano",
 ) -> Dict[str, Any]:
     """
     Use LLM to intelligently extract all data from conversation.
@@ -130,7 +122,7 @@ def onboarding(
     conversation_history: Optional[List[Dict[str, str]]] = None,
     collected_data: Optional[Dict[str, Any]] = None,
     model: str = "gpt-4.1-nano",
-    temperature: float = 0.7,
+    temperature: float = 0.1,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
