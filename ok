@@ -1,0 +1,58 @@
+{
+  "store_name": null,
+  "date": null,
+  "currency": "$",
+  "items": [
+    {
+      "name": "SELECT TUNA THAI RED CURRY 95G",
+      "quantity": "2 units",
+      "price": "0.79"
+    },
+    {
+      "name": "GREENSEAS TUNA SANDWICH 95G",
+      "quantity": "2 units",
+      "price": "1.00"
+    },
+    {
+      "name": "SELECT TUNA MAYO AND CORN 95G",
+      "quantity": "2 units",
+      "price": "0.79"
+    },
+    {
+      "name": "MINCE BEEF REGULAR LRG KG 3",
+      "quantity": "1 unit",
+      "price": "6.42"
+    },
+    {
+      "name": "BREAST FILLET RSPCA APPROVED CHKN",
+      "quantity": "1 unit",
+      "price": "4.45"
+    },
+    {
+      "name": "BACON MIDDLE RASHERS",
+      "quantity": "1 kg",
+      "price": "3.26"
+    },
+    {
+      "name": "SELECT LIGHT THICKENED CREAM",
+      "quantity": "1 unit",
+      "price": "2.30"
+    },
+    {
+      "name": "SELECT TACO SHELLS 12PK 168G",
+      "quantity": "1 unit",
+      "price": "2.50"
+    },
+    {
+      "name": "VALCOM RICE PAPER 22CM 150G",
+      "quantity": "1 unit",
+      "price": "1.90"
+    },
+    {
+      "name": "SELECT CANNED CHICKEN SMOKED 85G",
+      "quantity": "2 units",
+      "price": "1.00"
+    }
+  ],
+  "total": "29.64"
+}

@@ -9,6 +9,7 @@ AI-powered conversational onboarding using LangChain and OpenAI GPT-4o-mini for 
 ✅ **Multi-field Support** - Extracts multiple pieces of information from a single response
 ✅ **Progress Tracking** - Shows real-time progress of data collection
 ✅ **JSON Output** - Returns structured data ready for backend integration
+✅ **Receipt Parsing** - Extract food items from receipt images using Gemini Vision AI
 
 ## Setup
 
@@ -29,6 +30,31 @@ echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
 ```bash
 python run_onboarding.py
 ```
+
+### Run Meal Generator
+
+Generate personalized meals based on user fitness profile:
+
+```bash
+python run_meal_generator.py
+```
+
+Options:
+- Generate single meal (Breakfast/Lunch/Snacks/Dinner)
+- Generate complete daily meal plan
+- Use sample profile for quick demo
+
+**📖 See [MEAL_GENERATOR_API.md](MEAL_GENERATOR_API.md) for detailed API documentation**
+
+### Parse Receipt Images
+
+Extract food items from receipt images using Gemini Vision:
+
+```bash
+python receipt_parser.py receipt_image.jpg
+```
+
+**📖 See [RECEIPT_PARSER_API.md](RECEIPT_PARSER_API.md) for detailed API documentation**
 
 ### Use in Your Code
 
@@ -54,6 +80,55 @@ while not result['is_complete']:
 # Get collected data
 profile_data = result['collected_data']
 print(json.dumps(profile_data, indent=2))
+```
+
+#### Meal Generation
+
+```python
+from meal_generator import generate_meal, generate_daily_meal_plan
+
+# User profile from onboarding
+user_info = {
+    "gender": "male",
+    "date_of_birth": "1990-01-15",
+    "current_height": "175",
+    "current_weight": "75",
+    "current_weight_unit": "kg",
+    "target_weight": "70",
+    "target_weight_unit": "kg",
+    "goal": "lose weight",
+    "activity_level": "moderate"
+}
+
+# Generate a single meal
+meal = generate_meal(user_info, meal_type="Lunch")
+print(meal)
+
+# Generate complete daily plan
+daily_plan = generate_daily_meal_plan(user_info)
+for meal_type, meal_data in daily_plan.items():
+    print(f"{meal_type}: {meal_data['meal_name']}")
+```
+
+#### Receipt Parsing
+
+```python
+from receipt_parser import parse_receipt_image, format_receipt_summary
+
+# Parse receipt image
+receipt_data = parse_receipt_image("grocery_receipt.jpg")
+
+# Display formatted summary
+print(format_receipt_summary(receipt_data))
+
+# Access extracted items
+for item in receipt_data['items']:
+    print(f"{item['name']}: {item['quantity']} - ${item['price']}")
+
+# Example output:
+# Chicken Breast: 1kg - $12.99
+# Brown Rice: 2kg - $8.50
+# Greek Yogurt: 4 cups - $6.99
 ```
 
 ## Collected Fields

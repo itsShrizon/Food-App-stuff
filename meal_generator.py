@@ -31,7 +31,8 @@ Activity Level Multipliers:
 
 Return format:
 {
-  "meal_name": "Breakfast" | "Snacks" | "Lunch" | "Dinner",
+  "meal_type": "Breakfast" | "Snacks" | "Lunch" | "Dinner",
+  "meal_name": "Actual meal name like 'Chicken Fry', 'Fried Rice', 'Caesar Salad'",
   "meal_description": "Brief description of the meal",
   "ingredients": [
     {
@@ -82,7 +83,8 @@ def generate_meal(
         
     Returns:
         Dictionary containing:
-            - meal_name: Name of the meal type
+            - meal_type: Type of meal ("Breakfast", "Snacks", "Lunch", "Dinner")
+            - meal_name: Actual name of the dish (e.g., "Chicken Fry", "Caesar Salad")
             - meal_description: Brief description
             - ingredients: List of ingredients with amounts
             - preparation_time: Time needed to prepare
@@ -156,7 +158,7 @@ Return ONLY a valid JSON object with the meal details. No markdown, no explanati
         meal_data = json.loads(response.strip())
         
         # Validate response structure
-        required_keys = ['meal_name', 'ingredients', 'nutritional_info']
+        required_keys = ['meal_type', 'meal_name', 'ingredients', 'nutritional_info']
         if not all(key in meal_data for key in required_keys):
             raise ValueError(f"Generated meal missing required keys: {required_keys}")
         
