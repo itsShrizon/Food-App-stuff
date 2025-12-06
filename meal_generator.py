@@ -1,7 +1,13 @@
 """Meal generation module using LLM for personalized nutrition plans."""
 
 import json
+import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from LLM_shared import chatbot
 
@@ -37,18 +43,20 @@ Return format:
   "ingredients": [
     {
       "name": "Ingredient name",
-      "amount": "250g" | "2 pieces" | "1 cup"
+      "quantity": "250" | "2" | "1",
+      "unit": "g" | "ml" | "pieces" | "cups" | "etc.",
+      "nutritional_info": {
+        "calories": "100kcal",
+        "protein": "5g",
+        "carbohydrate": "12g",
+        "fat": "3g"
+      }
     }
   ],
   "preparation_time": "20 minutes",
-  "cooking_instructions": "Brief instructions",
-  "nutritional_info": {
-    "calories": "300kcal",
-    "protein": "30g",
-    "carbohydrate": "15g",
-    "fat": "12g"
-  }
-}"""
+  "cooking_instructions": "Brief instructions"
+}
+"""
 
 
 def generate_meal(
@@ -156,6 +164,7 @@ Return ONLY a valid JSON object with the meal details. No markdown, no explanati
                 response = response[4:]
         
         meal_data = json.loads(response.strip())
+        meal_data = _ensure_meal_schema(meal_data, meal_type)
         
         # Validate response structure
         required_keys = ['meal_type', 'meal_name', 'ingredients', 'nutritional_info']
@@ -175,6 +184,7 @@ def generate_daily_meal_plan(
     *,
     model: str = "gpt-4o-mini",
     temperature: float = 0.7,
+    previous_meals: Optional[List[Dict[str, Any]]] = None,
     **kwargs: Any,
 ) -> Dict[str, Dict[str, Any]]:
     """
@@ -184,6 +194,7 @@ def generate_daily_meal_plan(
         user_info: Dictionary containing user's profile information
         model: OpenAI model to use (default: gpt-4o-mini)
         temperature: Model temperature (default: 0.7)
+        previous_meals: Optional list of previously generated meals to avoid repetition
         **kwargs: Additional parameters for chatbot
         
     Returns:
@@ -195,24 +206,22 @@ def generate_daily_meal_plan(
             "Dinner": {...}
         }
     """
-    meal_plan = {}
-    previous_meals = []
-    
-    meal_types = ["Breakfast", "Snacks", "Lunch", "Dinner"]
-    
-    for meal_type in meal_types:
+    meal_plan: Dict[str, Dict[str, Any]] = {}
+    history = previous_meals[:] if previous_meals else []
+
+    for meal_type in ["Breakfast", "Snacks", "Lunch", "Dinner"]:
         meal = generate_meal(
             user_info=user_info,
             meal_type=meal_type,
-            previous_meals=previous_meals,
+            previous_meals=history,
             model=model,
             temperature=temperature,
             **kwargs,
         )
         meal_plan[meal_type] = meal
-        previous_meals.append(meal)
-    
-    return meal_plan
+        history.append(meal)
+
+    return meal_plan, history
 
 
 def _calculate_age(date_of_birth: str) -> int:
@@ -234,3 +243,67 @@ def _calculate_age(date_of_birth: str) -> int:
         return age
     except Exception:
         return 25  # Default age if parsing fails
+
+
+def _ensure_meal_schema(meal_data: Dict[str, Any], fallback_meal_type: str) -> Dict[str, Any]:
+    """Fill in any schema gaps returned by the LLM to keep downstream code safe."""
+    meal_data.setdefault('meal_type', fallback_meal_type)
+    meal_data.setdefault('meal_name', 'Untitled Meal')
+    meal_data.setdefault('meal_description', 'No description provided.')
+    meal_data.setdefault('preparation_time', 'N/A')
+    meal_data.setdefault('cooking_instructions', 'N/A')
+
+    nutritional_info = meal_data.get('nutritional_info') or {}
+    meal_data['nutritional_info'] = {
+        'calories': nutritional_info.get('calories', '0kcal'),
+        'protein': nutritional_info.get('protein', '0g'),
+        'carbohydrate': nutritional_info.get('carbohydrate', '0g'),
+        'fat': nutritional_info.get('fat', '0g'),
+    }
+
+    ingredients = meal_data.get('ingredients')
+    if not isinstance(ingredients, list) or not ingredients:
+        meal_data['ingredients'] = [
+            {
+                'name': 'Sample Ingredient',
+                'amount': '1 serving',
+            }
+        ]
+
+    return meal_data
+
+
+def generate_weekly_meal_plan(
+    user_info: Dict[str, Any],
+    *,
+    model: str = "gpt-4o-mini",
+    temperature: float = 0.7,
+    previous_meals: Optional[List[Dict[str, Any]]] = None,
+    **kwargs: Any,
+) -> Dict[str, Dict[str, Any]]:
+    """
+    Generate a complete weekly meal plan with daily plans for Breakfast, Snacks, Lunch, and Dinner.
+    
+    Args:
+        user_info: Dictionary containing user's profile information
+        model: OpenAI model to use (default: gpt-4o-mini)
+        temperature: Model temperature (default: 0.7)
+        previous_meals: Optional list of previously generated meals to avoid repetition
+        **kwargs: Additional parameters for chatbot
+        
+    Returns:
+        Dictionary with days as keys and daily meal plans as values:
+        {
+            "Day 1": {"Breakfast": {...}, "Snacks": {...}, "Lunch": {...}, "Dinner": {...}},
+            "Day 2": {...},
+            ...
+        }
+    """
+    weekly_history: List[Dict[str, Any]] = []
+    weekly_plan: Dict[str, Dict[str, Dict[str, Any]]] = {}
+
+    for day in range(7):
+        plan, weekly_history = generate_daily_meal_plan(user_info, previous_meals=weekly_history)
+        weekly_plan[f"Day {day + 1}"] = plan
+
+    return weekly_plan

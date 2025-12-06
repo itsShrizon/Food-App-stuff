@@ -1,0 +1,108 @@
+{
+  "store_name": null,
+  "date": null,
+  "currency": "$",
+  "items": [
+    {
+      "name": "SELECT TUNA THAI RED CURRY 95G",
+      "quantity": "2",
+      "unit": "each",
+      "price": "0.79",
+      "calories": null,
+      "protein": null,
+      "carbohydrate": null,
+      "fat": null
+    },
+    {
+      "name": "GREENSEAS TUNA SANDWICH 95G",
+      "quantity": "2",
+      "unit": "each",
+      "price": "1.00",
+      "calories": null,
+      "protein": null,
+      "carbohydrate": null,
+      "fat": null
+    },
+    {
+      "name": "SELECT TUNA MAYO AND CORN 95G",
+      "quantity": "2",
+      "unit": "each",
+      "price": "0.79",
+      "calories": null,
+      "protein": null,
+      "carbohydrate": null,
+      "fat": null
+    },
+    {
+      "name": "MINCE BEEF REGULAR LRG",
+      "quantity": "3",
+      "unit": "kg",
+      "price": "6.42",
+      "calories": null,
+      "protein": null,
+      "carbohydrate": null,
+      "fat": null
+    },
+    {
+      "name": "BREAST FILLET RSPCA APPROVED CHKN",
+      "quantity": "1",
+      "unit": "piece",
+      "price": "4.45",
+      "calories": null,
+      "protein": null,
+      "carbohydrate": null,
+      "fat": null
+    },
+    {
+      "name": "BACON MIDDLE RASHERS",
+      "quantity": "1",
+      "unit": "kg",
+      "price": "3.26",
+      "calories": null,
+      "protein": null,
+      "carbohydrate": null,
+      "fat": null
+    },
+    {
+      "name": "SELECT LIGHT THICKENED CREAM",
+      "quantity": "1",
+      "unit": "unit",
+      "price": "2.30",
+      "calories": null,
+      "protein": null,
+      "carbohydrate": null,
+      "fat": null
+    },
+    {
+      "name": "SELECT TACO SHELLS 12PK 168G",
+      "quantity": "1",
+      "unit": "unit",
+      "price": "2.50",
+      "calories": null,
+      "protein": null,
+      "carbohydrate": null,
+      "fat": null
+    },
+    {
+      "name": "VALCOM RICE PAPER 22CM 150G",
+      "quantity": "1",
+      "unit": "unit",
+      "price": "1.90",
+      "calories": null,
+      "protein": null,
+      "carbohydrate": null,
+      "fat": null
+    },
+    {
+      "name": "SELECT CANNED CHICKEN SMOKED 85G",
+      "quantity": "2",
+      "unit": "each",
+      "price": "1.00",
+      "calories": null,
+      "protein": null,
+      "carbohydrate": null,
+      "fat": null
+    }
+  ],
+  "total": "29.64"
+}

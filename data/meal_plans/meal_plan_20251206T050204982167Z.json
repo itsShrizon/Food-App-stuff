@@ -1,0 +1,165 @@
+{
+  "generated_at": "2025-12-06T05:01:36.671051Z",
+  "user_profile": {
+    "gender": "female",
+    "date_of_birth": "1992-04-15",
+    "current_height": 168,
+    "current_height_unit": "cm",
+    "current_weight": 70,
+    "current_weight_unit": "kg",
+    "target_weight": 62,
+    "target_weight_unit": "kg",
+    "goal": "lose_weight",
+    "activity_level": "moderate"
+  },
+  "plan": {
+    "Breakfast": {
+      "meal_type": "Breakfast",
+      "meal_name": "Oatmeal with Berries and Almonds",
+      "meal_description": "A nutritious bowl of oatmeal topped with fresh berries and almonds for a balanced start to your day.",
+      "ingredients": [
+        {
+          "name": "Rolled oats",
+          "amount": "50g"
+        },
+        {
+          "name": "Water or almond milk",
+          "amount": "200ml"
+        },
+        {
+          "name": "Mixed berries (strawberries, blueberries, raspberries)",
+          "amount": "100g"
+        },
+        {
+          "name": "Almonds (sliced)",
+          "amount": "15g"
+        },
+        {
+          "name": "Honey (optional)",
+          "amount": "1 tsp"
+        }
+      ],
+      "preparation_time": "10 minutes",
+      "cooking_instructions": "1. In a saucepan, combine rolled oats and water or almond milk. Cook over medium heat until it thickens (about 5 minutes). 2. Stir in mixed berries and top with sliced almonds. 3. Drizzle with honey if desired. Serve warm.",
+      "nutritional_info": {
+        "calories": "350kcal",
+        "protein": "10g",
+        "carbohydrate": "55g",
+        "fat": "12g"
+      }
+    },
+    "Snacks": {
+      "meal_type": "Snacks",
+      "meal_name": "Greek Yogurt Parfait",
+      "meal_description": "A delicious parfait made with Greek yogurt, fresh fruits, and a sprinkle of granola.",
+      "ingredients": [
+        {
+          "name": "Greek yogurt (low-fat)",
+          "amount": "150g"
+        },
+        {
+          "name": "Mixed berries (strawberries, blueberries, raspberries)",
+          "amount": "100g"
+        },
+        {
+          "name": "Granola (low-sugar)",
+          "amount": "30g"
+        },
+        {
+          "name": "Honey",
+          "amount": "1 tablespoon"
+        }
+      ],
+      "preparation_time": "5 minutes",
+      "cooking_instructions": "Layer Greek yogurt, mixed berries, and granola in a bowl or glass. Drizzle with honey on top and serve.",
+      "nutritional_info": {
+        "calories": "280kcal",
+        "protein": "18g",
+        "carbohydrate": "40g",
+        "fat": "6g"
+      }
+    },
+    "Lunch": {
+      "meal_type": "Lunch",
+      "meal_name": "Quinoa Salad with Grilled Chicken",
+      "meal_description": "A nutritious salad featuring quinoa, grilled chicken, mixed greens, and a light vinaigrette.",
+      "ingredients": [
+        {
+          "name": "Quinoa",
+          "amount": "100g"
+        },
+        {
+          "name": "Grilled Chicken Breast",
+          "amount": "150g"
+        },
+        {
+          "name": "Mixed Greens (Spinach, Arugula, Lettuce)",
+          "amount": "100g"
+        },
+        {
+          "name": "Cherry Tomatoes",
+          "amount": "100g"
+        },
+        {
+          "name": "Cucumber",
+          "amount": "50g"
+        },
+        {
+          "name": "Olive Oil",
+          "amount": "15ml"
+        },
+        {
+          "name": "Lemon Juice",
+          "amount": "10ml"
+        }
+      ],
+      "preparation_time": "25 minutes",
+      "cooking_instructions": "Cook quinoa according to package instructions. Grill the chicken breast until cooked through. In a bowl, combine cooked quinoa, grilled chicken, mixed greens, cherry tomatoes, and cucumber. Drizzle with olive oil and lemon juice, then toss to combine.",
+      "nutritional_info": {
+        "calories": "450kcal",
+        "protein": "40g",
+        "carbohydrate": "35g",
+        "fat": "20g"
+      }
+    },
+    "Dinner": {
+      "meal_type": "Dinner",
+      "meal_name": "Baked Salmon with Asparagus",
+      "meal_description": "A healthy baked salmon fillet served with roasted asparagus and a lemon-dill sauce.",
+      "ingredients": [
+        {
+          "name": "Salmon fillet",
+          "amount": "150g"
+        },
+        {
+          "name": "Asparagus",
+          "amount": "200g"
+        },
+        {
+          "name": "Olive oil",
+          "amount": "1 tablespoon"
+        },
+        {
+          "name": "Lemon juice",
+          "amount": "1 tablespoon"
+        },
+        {
+          "name": "Fresh dill",
+          "amount": "1 tablespoon"
+        },
+        {
+          "name": "Garlic",
+          "amount": "2 cloves"
+        }
+      ],
+      "preparation_time": "25 minutes",
+      "cooking_instructions": "Preheat the oven to 200\u00b0C (400\u00b0F). Place the salmon on a baking sheet, drizzle with olive oil, lemon juice, minced garlic, and sprinkle with dill. Arrange asparagus around the salmon, drizzle with olive oil, and season with salt and pepper. Bake for 15-20 minutes until the salmon is cooked through and asparagus is tender.",
+      "nutritional_info": {
+        "calories": "400kcal",
+        "protein": "35g",
+        "carbohydrate": "10g",
+        "fat": "25g"
+      }
+    }
+  }
+}
