@@ -91,8 +91,13 @@ Return ONLY a valid JSON object in this exact format:
   "items": [
     {
       "name": "Item Name",
-      "quantity": "amount with unit",
-      "price": "price as string"
+      "quantity": "amount",
+      "unit": "unit of measurement",
+      "price": "price as string",
+      "calories": "estimated kcal",
+      "protein": "estimated g",
+      "carbohydrate": "estimated g",
+      "fat": "estimated g"
     }
   ],
   "total": "total amount or null"
@@ -103,7 +108,11 @@ IMPORTANT:
 - Exclude non-food items like bags, utensils, taxes, or service charges
 - If quantity is not specified, use "1 unit" or "1 piece"
 - Keep prices as strings to preserve formatting
-- Return only the JSON object, no other text or markdown"""
+- Nutrition values (calories, protein, carbohydrates, fat) should NOT be taken from the receipt—provide an educated estimate instead.
+- Return only the JSON object, no other text or markdown.
+- Always take the total amount from the receipt, meaning if the receipt shows one cucumber costs 2.00, and there are 3 cucumbers, the total should be 6.00, not 2.00.
+
+"""
 
     try:
         # Upload image and generate content
