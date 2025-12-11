@@ -59,6 +59,52 @@ Return format:
 }
 """
 
+DAILY_MEAL_GENERATION_SYSTEM_PROMPT = """You are an expert nutritionist and meal planner. Generate a complete daily meal plan (Breakfast, Snacks, Lunch, Dinner) based on user's fitness goals and profile.
+
+IMPORTANT RULES:
+1. Generate meals that align with the user's fitness goal (lose_weight, maintain, gain_weight)
+2. Consider activity level for calorie requirements
+3. Ensure balanced macronutrients (protein, carbs, fats) across the day
+4. Provide realistic portion sizes with proper units (g, ml, pieces, etc.)
+5. Include diverse, accessible ingredients
+6. Calculate accurate nutritional information
+7. Avoid repeating meals from previous days if provided
+8. Return ONLY valid JSON, no explanations
+
+Calorie Guidelines by Goal:
+- lose_weight: caloric deficit (~300-500 kcal below maintenance)
+- maintain: maintenance calories
+- gain_weight: caloric surplus (~300-500 kcal above maintenance)
+
+Activity Level Multipliers:
+- sedentary: 1.2x BMR
+- light: 1.375x BMR
+- moderate: 1.55x BMR
+- active: 1.725x BMR
+
+Return format:
+{
+  "Breakfast": {
+    "meal_name": "...",
+    "meal_description": "...",
+    "ingredients": [
+      {
+        "name": "...",
+        "quantity": "...",
+        "unit": "...",
+        "nutritional_info": { "calories": "...", "protein": "...", "carbohydrate": "...", "fat": "..." }
+      }
+    ],
+    "preparation_time": "...",
+    "cooking_instructions": "...",
+    "nutritional_info": { "calories": "...", "protein": "...", "carbohydrate": "...", "fat": "..." }
+  },
+  "Snacks": { ... },
+  "Lunch": { ... },
+  "Dinner": { ... }
+}
+"""
+
 
 def generate_meal(
     user_info: Dict[str, Any],
@@ -151,6 +197,90 @@ Return ONLY a valid JSON object with the meal details. No markdown, no explanati
         raise RuntimeError(f"Error generating meal: {e}")
 
 
+def generate_day_meals(
+    user_info: Dict[str, Any],
+    *,
+    previous_meals: Optional[List[Dict[str, Any]]] = None,
+    model: str = "gpt-4.1-nano",
+    temperature: float = 0.7,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """
+    Generate a complete daily meal plan (Breakfast, Snacks, Lunch, Dinner).
+    """
+    # Validate required fields
+    required_fields = [
+        'gender', 'date_of_birth', 'current_height', 'current_weight',
+        'current_weight_unit', 'target_weight', 'target_weight_unit',
+        'goal', 'activity_level'
+    ]
+    missing_fields = [field for field in required_fields if field not in user_info]
+    if missing_fields:
+        raise ValueError(f"Missing required user_info fields: {missing_fields}")
+
+    # Build user context
+    user_context = f"""
+User Profile:
+- Gender: {user_info['gender']}
+- Age: {_calculate_age(user_info['date_of_birth'])} years
+- Height: {user_info['current_height']} cm
+- Current Weight: {user_info['current_weight']} {user_info['current_weight_unit']}
+- Target Weight: {user_info['target_weight']} {user_info['target_weight_unit']}
+- Fitness Goal: {user_info['goal']}
+- Activity Level: {user_info['activity_level']}
+"""
+
+    # Add previous meals context
+    previous_meals_context = ""
+    if previous_meals:
+        recent_history = previous_meals[-20:]
+        previous_meals_names = [meal.get('meal_name', 'Unknown') for meal in recent_history]
+        previous_meals_context = f"\n\nRecently generated meals: {', '.join(previous_meals_names)}\nPlease generate different meals to ensure variety."
+
+    prompt = f"""{user_context}{previous_meals_context}
+
+Generate a complete daily meal plan including Breakfast, Snacks, Lunch, and Dinner.
+1. Align with {user_info['goal']} goal
+2. Match {user_info['activity_level']} activity level
+3. Balanced nutrition
+4. Realistic and easy to prepare
+
+Return ONLY a valid JSON object with keys: "Breakfast", "Snacks", "Lunch", "Dinner".
+"""
+
+    try:
+        response = chatbot(
+            user_message=prompt,
+            system_prompt=DAILY_MEAL_GENERATION_SYSTEM_PROMPT,
+            model=model,
+            temperature=temperature,
+            **kwargs,
+        )
+        
+        # Clean markdown
+        response = response.strip()
+        if response.startswith("```"):
+            response = response.split("```")[1]
+            if response.startswith("json"):
+                response = response[4:]
+        
+        daily_plan = json.loads(response.strip())
+        
+        # Validate and clean up
+        cleaned_plan = {}
+        for meal_type in ["Breakfast", "Snacks", "Lunch", "Dinner"]:
+            meal_data = daily_plan.get(meal_type, {})
+            cleaned_meal = _ensure_meal_schema(meal_data, meal_type)
+            cleaned_plan[meal_type] = cleaned_meal
+            
+        return cleaned_plan
+
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse daily plan JSON: {e}. Response: {response}")
+    except Exception as e:
+        raise RuntimeError(f"Error generating daily plan: {e}")
+
+
 def generate_meal_plan(
     user_info: Dict[str, Any],
     duration_days: int = 1,
@@ -174,48 +304,36 @@ def generate_meal_plan(
     Returns:
         Dictionary where keys are Dates (YYYY-MM-DD), and values are dictionaries
         containing "Breakfast", "Snacks", "Lunch", "Dinner".
-        
-        Example structure:
-        {
-            "2023-10-25": { ... },  <-- Today
-            "2023-10-26": { ... }   <-- Tomorrow
-        }
     """
     if duration_days < 1:
         raise ValueError("duration_days must be at least 1")
 
     full_plan: Dict[str, Dict[str, Any]] = {}
     history_tracker = previous_meals[:] if previous_meals else []
-    meal_sequence = ["Breakfast", "Snacks", "Lunch", "Dinner"]
-
-    # Calculate current date reference
+    
     current_date = datetime.now()
 
     for i in range(duration_days):
-        # Calculate target date: Start from today (current + i days)
         target_date = current_date + timedelta(days=i)
         day_label = target_date.strftime("%Y-%m-%d")
         
-        daily_meals: Dict[str, Any] = {}
-        
-        for meal_type in meal_sequence:
-            try:
-                generated_meal = generate_meal(
-                    user_info=user_info,
-                    meal_type=meal_type,
-                    previous_meals=history_tracker,
-                    model=model,
-                    temperature=temperature,
-                    **kwargs,
-                )
-                
-                daily_meals[meal_type] = generated_meal
-                history_tracker.append(generated_meal)
-                
-            except Exception as e:
-                raise RuntimeError(f"Failed to generate {meal_type} for {day_label}: {str(e)}")
-
-        full_plan[day_label] = daily_meals
+        try:
+            daily_meals = generate_day_meals(
+                user_info=user_info,
+                previous_meals=history_tracker,
+                model=model,
+                temperature=temperature,
+                **kwargs,
+            )
+            
+            full_plan[day_label] = daily_meals
+            
+            for meal_type in ["Breakfast", "Snacks", "Lunch", "Dinner"]:
+                if meal_type in daily_meals:
+                    history_tracker.append(daily_meals[meal_type])
+                    
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate plan for {day_label}: {str(e)}")
 
     return full_plan
 

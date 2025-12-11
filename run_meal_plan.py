@@ -6,7 +6,7 @@ from meal_generator import generate_meal_plan  # Updated import
 
 def run(
     user_info: Dict[str, Any],
-    model: str = "gpt-4o-mini",
+    model: str = "gpt-4.1-nano",
     temperature: float = 0.1,
     days: int = 2,
     **kwargs: Any,
