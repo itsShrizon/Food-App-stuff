@@ -4,6 +4,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from datetime import datetime, timedelta
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -64,43 +65,12 @@ def generate_meal(
     meal_type: str,
     *,
     previous_meals: Optional[List[Dict[str, Any]]] = None,
-    model: str = "gpt-4o-mini",
+    model: str = "gpt-4.1-nano",
     temperature: float = 0.7,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
-    Generate a personalized meal plan based on user's profile and fitness goals.
-    
-    Args:
-        user_info: Dictionary containing user's profile information with fields:
-            - gender: "male" | "female" | "others"
-            - date_of_birth: "YYYY-MM-DD"
-            - current_height: numeric (in cm)
-            - current_height_unit: "cm"
-            - current_weight: numeric
-            - current_weight_unit: "kg" | "lbs"
-            - target_weight: numeric
-            - target_weight_unit: "kg" | "lbs"
-            - goal: "lose_weight" | "maintain" | "gain_weight"
-            - activity_level: "sedentary" | "light" | "moderate" | "active"
-        meal_type: Type of meal to generate: "Breakfast", "Snacks", "Lunch", or "Dinner"
-        previous_meals: Optional list of previously generated meals to avoid repetition
-        model: OpenAI model to use (default: gpt-4o-mini)
-        temperature: Model temperature (default: 0.7)
-        **kwargs: Additional parameters for chatbot
-        
-    Returns:
-        Dictionary containing:
-            - meal_type: Type of meal ("Breakfast", "Snacks", "Lunch", "Dinner")
-            - meal_name: Actual name of the dish (e.g., "Chicken Fry", "Caesar Salad")
-            - meal_description: Brief description
-            - ingredients: List of ingredients with amounts
-            - preparation_time: Time needed to prepare
-            - cooking_instructions: How to prepare the meal
-            - nutritional_info: Calories, protein, carbs, fat
-            
-    Raises:
-        ValueError: If meal_type is invalid or required user_info fields are missing
+    Generate a single personalized meal based on user's profile.
     """
     # Validate meal_type
     valid_meal_types = ["Breakfast", "Snacks", "Lunch", "Dinner"]
@@ -133,8 +103,10 @@ User Profile:
     # Add previous meals context if provided
     previous_meals_context = ""
     if previous_meals:
-        previous_meals_names = [meal.get('meal_name', 'Unknown') for meal in previous_meals]
-        previous_meals_context = f"\n\nPrevious meals today: {', '.join(previous_meals_names)}\nPlease generate a different meal to ensure variety."
+        # We take the last few meals to avoid immediate repetition context window overload
+        recent_history = previous_meals[-12:] 
+        previous_meals_names = [meal.get('meal_name', 'Unknown') for meal in recent_history]
+        previous_meals_context = f"\n\nRecently generated meals: {', '.join(previous_meals_names)}\nPlease generate a different meal to ensure variety."
     
     # Generate meal
     prompt = f"""{user_context}{previous_meals_context}
@@ -179,66 +151,81 @@ Return ONLY a valid JSON object with the meal details. No markdown, no explanati
         raise RuntimeError(f"Error generating meal: {e}")
 
 
-def generate_daily_meal_plan(
+def generate_meal_plan(
     user_info: Dict[str, Any],
+    duration_days: int = 1,
     *,
-    model: str = "gpt-4o-mini",
+    model: str = "gpt-4.1-nano",
     temperature: float = 0.7,
     previous_meals: Optional[List[Dict[str, Any]]] = None,
     **kwargs: Any,
 ) -> Dict[str, Dict[str, Any]]:
     """
-    Generate a complete daily meal plan with Breakfast, Snacks, Lunch, and Dinner.
+    Generate a meal plan for a specific number of days, starting from today.
     
     Args:
-        user_info: Dictionary containing user's profile information
-        model: OpenAI model to use (default: gpt-4o-mini)
-        temperature: Model temperature (default: 0.7)
-        previous_meals: Optional list of previously generated meals to avoid repetition
-        **kwargs: Additional parameters for chatbot
+        user_info: Dictionary containing user's profile information.
+        duration_days: Number of days to generate (default: 1).
+        model: OpenAI model to use.
+        temperature: Model temperature.
+        previous_meals: Optional list of previously generated meals to avoid repetition.
+        **kwargs: Additional parameters for chatbot.
         
     Returns:
-        Dictionary with meal types as keys and meal details as values:
+        Dictionary where keys are Dates (YYYY-MM-DD), and values are dictionaries
+        containing "Breakfast", "Snacks", "Lunch", "Dinner".
+        
+        Example structure:
         {
-            "Breakfast": {...},
-            "Snacks": {...},
-            "Lunch": {...},
-            "Dinner": {...}
+            "2023-10-25": { ... },  <-- Today
+            "2023-10-26": { ... }   <-- Tomorrow
         }
     """
-    meal_plan: Dict[str, Dict[str, Any]] = {}
-    history = previous_meals[:] if previous_meals else []
+    if duration_days < 1:
+        raise ValueError("duration_days must be at least 1")
 
-    for meal_type in ["Breakfast", "Snacks", "Lunch", "Dinner"]:
-        meal = generate_meal(
-            user_info=user_info,
-            meal_type=meal_type,
-            previous_meals=history,
-            model=model,
-            temperature=temperature,
-            **kwargs,
-        )
-        meal_plan[meal_type] = meal
-        history.append(meal)
+    full_plan: Dict[str, Dict[str, Any]] = {}
+    history_tracker = previous_meals[:] if previous_meals else []
+    meal_sequence = ["Breakfast", "Snacks", "Lunch", "Dinner"]
 
-    return meal_plan, history
+    # Calculate current date reference
+    current_date = datetime.now()
+
+    for i in range(duration_days):
+        # Calculate target date: Start from today (current + i days)
+        target_date = current_date + timedelta(days=i)
+        day_label = target_date.strftime("%Y-%m-%d")
+        
+        daily_meals: Dict[str, Any] = {}
+        
+        for meal_type in meal_sequence:
+            try:
+                generated_meal = generate_meal(
+                    user_info=user_info,
+                    meal_type=meal_type,
+                    previous_meals=history_tracker,
+                    model=model,
+                    temperature=temperature,
+                    **kwargs,
+                )
+                
+                daily_meals[meal_type] = generated_meal
+                history_tracker.append(generated_meal)
+                
+            except Exception as e:
+                raise RuntimeError(f"Failed to generate {meal_type} for {day_label}: {str(e)}")
+
+        full_plan[day_label] = daily_meals
+
+    return full_plan
 
 
 def _calculate_age(date_of_birth: str) -> int:
-    """
-    Calculate age from date of birth string.
-    
-    Args:
-        date_of_birth: Date string in YYYY-MM-DD format
-        
-    Returns:
-        Age in years
-    """
-    from datetime import datetime
-    
+    """Calculate age from date of birth string."""
+    from datetime import datetime as dt
     try:
-        dob = datetime.strptime(date_of_birth, "%Y-%m-%d")
-        today = datetime.today()
+        dob = dt.strptime(date_of_birth, "%Y-%m-%d")
+        today = dt.today()
         age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
         return age
     except Exception:
@@ -246,7 +233,7 @@ def _calculate_age(date_of_birth: str) -> int:
 
 
 def _ensure_meal_schema(meal_data: Dict[str, Any], fallback_meal_type: str) -> Dict[str, Any]:
-    """Fill in any schema gaps returned by the LLM to keep downstream code safe."""
+    """Fill in any schema gaps returned by the LLM."""
     meal_data.setdefault('meal_type', fallback_meal_type)
     meal_data.setdefault('meal_name', 'Untitled Meal')
     meal_data.setdefault('meal_description', 'No description provided.')
@@ -266,44 +253,10 @@ def _ensure_meal_schema(meal_data: Dict[str, Any], fallback_meal_type: str) -> D
         meal_data['ingredients'] = [
             {
                 'name': 'Sample Ingredient',
-                'amount': '1 serving',
+                'quantity': '1',
+                'unit': 'serving',
+                'nutritional_info': {}
             }
         ]
 
     return meal_data
-
-
-def generate_weekly_meal_plan(
-    user_info: Dict[str, Any],
-    *,
-    model: str = "gpt-4o-mini",
-    temperature: float = 0.7,
-    previous_meals: Optional[List[Dict[str, Any]]] = None,
-    **kwargs: Any,
-) -> Dict[str, Dict[str, Any]]:
-    """
-    Generate a complete weekly meal plan with daily plans for Breakfast, Snacks, Lunch, and Dinner.
-    
-    Args:
-        user_info: Dictionary containing user's profile information
-        model: OpenAI model to use (default: gpt-4o-mini)
-        temperature: Model temperature (default: 0.7)
-        previous_meals: Optional list of previously generated meals to avoid repetition
-        **kwargs: Additional parameters for chatbot
-        
-    Returns:
-        Dictionary with days as keys and daily meal plans as values:
-        {
-            "Day 1": {"Breakfast": {...}, "Snacks": {...}, "Lunch": {...}, "Dinner": {...}},
-            "Day 2": {...},
-            ...
-        }
-    """
-    weekly_history: List[Dict[str, Any]] = []
-    weekly_plan: Dict[str, Dict[str, Dict[str, Any]]] = {}
-
-    for day in range(7):
-        plan, weekly_history = generate_daily_meal_plan(user_info, previous_meals=weekly_history)
-        weekly_plan[f"Day {day + 1}"] = plan
-
-    return weekly_plan
