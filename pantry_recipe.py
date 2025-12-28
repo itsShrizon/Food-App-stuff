@@ -21,6 +21,13 @@ Format:
 [
   {
     "recipe_name": "string",
+    "servings": "number_of_people",
+    "ingredients": [
+      {
+        "name": "ingredient_name",
+        "quantity": "amount_with_unit"
+      }
+    ],
     "recipe_process": "string",
     "nutritional_values": {
       "calories": "string",
@@ -30,6 +37,7 @@ Format:
     }
   }
 ]
+
 """
 
 
@@ -44,7 +52,7 @@ def _clean_json_response(response: str) -> str:
 def generate_pantry_recipes(
     items: List[str],
     user_info: Dict[str, Any],
-    model: str = "gpt-4o-mini",
+    model: str = "gpt-4.1-mini",
     temperature: float = 0.7,
     **kwargs: Any,
 ) -> List[Dict[str, Any]]:
