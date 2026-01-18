@@ -3,8 +3,8 @@
 import re
 from typing import Any, Dict, Tuple
 
-from onboarding.config import ACTIVITY_MULTIPLIERS, TARGET_SPEED_RATES, DIETARY_PREFERENCE_FLAGS
-from onboarding.extractors import _validate_numeric_with_units
+from .config import ACTIVITY_MULTIPLIERS, TARGET_SPEED_RATES, DIETARY_PREFERENCE_FLAGS
+from .extractors import _validate_numeric_with_units
 
 
 def validate_extracted_data(data: Dict[str, Any]) -> Dict[str, Any]:

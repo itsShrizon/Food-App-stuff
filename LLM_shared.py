@@ -5,6 +5,6 @@ This module re-exports from the core package for backward compatibility.
 Actual implementation is in core/llm.py.
 """
 
-from core.llm import chatbot
+from .core.llm import chatbot
 
 __all__ = ['chatbot']

@@ -3,14 +3,14 @@
 import json
 from typing import Any, Dict, List, Optional
 
-from core.llm import chatbot
-from meal_generator.config import (
+from ..core.llm import chatbot
+from .config import (
     VALID_MEAL_TYPES,
     REQUIRED_USER_FIELDS,
     MEAL_GENERATION_SYSTEM_PROMPT,
     DAILY_MEAL_SYSTEM_PROMPT,
 )
-from meal_generator.utils import (
+from .utils import (
     validate_user_info,
     build_user_context,
     build_previous_meals_context,

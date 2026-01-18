@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-from receipt_parser.config import RECEIPT_PROMPT, BASE64_PROMPT
+from .config import RECEIPT_PROMPT, BASE64_PROMPT
 
 load_dotenv()
 

@@ -2,8 +2,8 @@
 
 from typing import Any, Dict
 import math
-from onboarding.config import ACTIVITY_MULTIPLIERS, TARGET_SPEED_RATES
-from onboarding.utils import convert_weight_to_kg, convert_height_to_cm
+from .config import ACTIVITY_MULTIPLIERS, TARGET_SPEED_RATES
+from .utils import convert_weight_to_kg, convert_height_to_cm
 
 
 def calculate_metabolic_profile(

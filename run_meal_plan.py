@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 import json
-from meal_generator import generate_meal_plan  # Updated import
+from .meal_generator import generate_meal_plan  # Updated import
 
 def run(
     user_info: Dict[str, Any],

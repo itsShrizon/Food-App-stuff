@@ -2,14 +2,14 @@
 
 from typing import Any, Dict, List, Optional
 
-from onboarding.config import ONBOARDING_FIELDS, DIETARY_PREFERENCE_FLAGS
-from onboarding.formatter import format_output_for_db
-from onboarding.service import (
+from .config import ONBOARDING_FIELDS, DIETARY_PREFERENCE_FLAGS
+from .formatter import format_output_for_db
+from .service import (
     _extract_data_with_llm,
     _calculate_macros_if_ready,
     _build_completion_message,
 )
-from onboarding.flow_helpers import is_confirmation, generate_response
+from .flow_helpers import is_confirmation, generate_response
 
 
 def onboarding(

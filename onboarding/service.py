@@ -2,12 +2,12 @@
 
 from typing import Any, Dict, List, Optional
 
-from LLM_shared import chatbot
-from onboarding.config import ONBOARDING_FIELDS, DIETARY_PREFERENCE_FLAGS
-from onboarding.prompts import EXTRACTION_SYSTEM_PROMPT
-from onboarding.utils import safe_parse_json, calculate_age
-from onboarding.validators import validate_extracted_data
-from onboarding.calculator import calculate_metabolic_profile
+from ..LLM_shared import chatbot
+from .config import ONBOARDING_FIELDS, DIETARY_PREFERENCE_FLAGS
+from .prompts import EXTRACTION_SYSTEM_PROMPT
+from .utils import safe_parse_json, calculate_age
+from .validators import validate_extracted_data
+from .calculator import calculate_metabolic_profile
 
 
 def _extract_data_with_llm(

@@ -4,9 +4,9 @@ import unittest
 from unittest.mock import patch, MagicMock
 import json
 
-from onboarding.flow import onboarding
-from onboarding.start import start_onboarding
-from onboarding.config import ONBOARDING_FIELDS
+from .flow import onboarding
+from .start import start_onboarding
+from .config import ONBOARDING_FIELDS
 
 class TestOnboardingRegression(unittest.TestCase):
     

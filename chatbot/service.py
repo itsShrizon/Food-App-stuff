@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Optional
 
-from core.llm import chatbot
+from ..core.llm import chatbot
 
 
 def _format_user_info(user_info: Dict[str, Any]) -> str:
