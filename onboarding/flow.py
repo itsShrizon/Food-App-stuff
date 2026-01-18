@@ -17,7 +17,7 @@ def onboarding(
     *,
     conversation_history: Optional[List[Dict[str, str]]] = None,
     collected_data: Optional[Dict[str, Any]] = None,
-    model: str = "gpt-4.1-mini",
+    model: str = "gpt-4.1-2025-04-14",
     temperature: float = 0.1,
     **kwargs: Any,
 ) -> Dict[str, Any]:
@@ -48,22 +48,20 @@ def onboarding(
     if 'dietary' in extracted:
         dietary_list = extracted['dietary']
         if 'none' in dietary_list:
+            collected_data['none'] = True
             collected_data['dietary_none_stated'] = True
         else:
             collected_data['dietary_none_stated'] = False
             for pref in dietary_list:
-                collected_data[pref] = True
+                if pref in DIETARY_PREFERENCE_FLAGS:
+                    collected_data[pref] = True
     
     # Calculate macros if ready
     macros_calculated = _calculate_macros_if_ready(collected_data)
     macros_confirmed = collected_data.get('macros_confirmed', False)
     
-    # Set default target_speed if missing (optional field)
-    if 'target_speed' not in collected_data:
-        collected_data['target_speed'] = 'normal'
-    
-    # Check missing and completion - exclude target_speed as it has default
-    required_fields = [f for f in ONBOARDING_FIELDS if f != 'target_speed']
+    # Check missing and completion
+    required_fields = list(ONBOARDING_FIELDS)
     missing = [f for f in required_fields if f not in collected_data]
     
     # Check dietary - done if ANY preference captured OR user explicitly said none

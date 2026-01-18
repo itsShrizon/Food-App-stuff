@@ -54,7 +54,7 @@ def generate_response(
     
     if macros_confirmed:
         return "Do you have any dietary restrictions? (vegan, dairy-free, gluten-free, nut-free, pescatarian, or none)"
-    
+    print(f"Running with model: {model}"  )
     display_fields = [f for f in collected_data.keys() if f in ONBOARDING_FIELDS]
     collected_str = ", ".join(display_fields) if display_fields else "none"
     missing_str = ", ".join(missing_fields) if missing_fields else "none"
@@ -66,8 +66,9 @@ def generate_response(
     )
     
     try:
+        msg_prompt = f"User: '{user_message}'. The NEXT missing field is '{missing_fields[0]}'. You MUST ask for it now." if missing_fields else f"User: '{user_message}'. Ask ONE question only."
         return chatbot(
-            user_message=f"User: '{user_message}'. Ask ONE question only.",
+            user_message=msg_prompt,
             system_prompt=system_prompt,
             conversation_history=conversation_history[:-1],
             model=model, temperature=temperature,

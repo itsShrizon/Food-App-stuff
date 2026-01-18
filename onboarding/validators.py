@@ -95,13 +95,20 @@ def _validate_dietary(data: Dict[str, Any], validated: Dict[str, Any]) -> None:
         return
     
     dietary = data['dietary']
+    
+    # Handle single string value (convert to list)
+    if isinstance(dietary, str):
+        dietary = [dietary]
+    
     if not isinstance(dietary, list):
         return
     
     validated_dietary = []
     for item in dietary:
         item = str(item).lower().strip().replace(' ', '_').replace('-', '_')
-        if item == 'none':
+        
+        # Map negative responses to 'none'
+        if item in ['none', 'no', 'nope', 'nothing', 'nada', 'n/a', 'na']:
             validated_dietary.append('none')
             continue
             
