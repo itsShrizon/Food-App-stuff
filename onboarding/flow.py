@@ -6,10 +6,8 @@ from onboarding.config import ONBOARDING_FIELDS, DIETARY_PREFERENCE_FLAGS
 from onboarding.formatter import format_output_for_db
 from onboarding.service import (
     _extract_data_with_llm,
-    _should_skip_optional,
     _calculate_macros_if_ready,
     _build_completion_message,
-    _extract_dietary_from_text,
 )
 from onboarding.flow_helpers import is_confirmation, generate_response
 
@@ -46,10 +44,15 @@ def onboarding(
         collected_data['macros_confirmed'] = True
     
     # Extract dietary preferences AFTER macros confirmed
-    if collected_data.get('macros_confirmed'):
-        for pref, val in _extract_dietary_from_text(user_message).items():
-            if val:
-                collected_data[pref] = val
+    # Process dietary preferences from LLM
+    if 'dietary' in extracted:
+        dietary_list = extracted['dietary']
+        if 'none' in dietary_list:
+            collected_data['dietary_none_stated'] = True
+        else:
+            collected_data['dietary_none_stated'] = False
+            for pref in dietary_list:
+                collected_data[pref] = True
     
     # Calculate macros if ready
     macros_calculated = _calculate_macros_if_ready(collected_data)
@@ -63,10 +66,8 @@ def onboarding(
     required_fields = [f for f in ONBOARDING_FIELDS if f != 'target_speed']
     missing = [f for f in required_fields if f not in collected_data]
     
-    # Check dietary - done if ANY preference captured OR user skipped
-    dietary_done = any(p in collected_data for p in DIETARY_PREFERENCE_FLAGS)
-    if macros_confirmed and _should_skip_optional(user_message):
-        dietary_done = True
+    # Check dietary - done if ANY preference captured OR user explicitly said none
+    dietary_done = any(p in collected_data for p in DIETARY_PREFERENCE_FLAGS) or collected_data.get('dietary_none_stated')
     
     is_complete = len(missing) == 0 and macros_confirmed and dietary_done
     

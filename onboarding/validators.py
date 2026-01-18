@@ -3,7 +3,7 @@
 import re
 from typing import Any, Dict, Tuple
 
-from onboarding.config import ACTIVITY_MULTIPLIERS, TARGET_SPEED_RATES
+from onboarding.config import ACTIVITY_MULTIPLIERS, TARGET_SPEED_RATES, DIETARY_PREFERENCE_FLAGS
 from onboarding.extractors import _validate_numeric_with_units
 
 
@@ -18,6 +18,7 @@ def validate_extracted_data(data: Dict[str, Any]) -> Dict[str, Any]:
     _validate_target_speed(data, validated)
     _validate_numeric_with_units(data, validated)
     _validate_macros_confirmed(data, validated)
+    _validate_dietary(data, validated)
     
     return validated
 
@@ -87,3 +88,35 @@ def _validate_macros_confirmed(data: Dict[str, Any], validated: Dict[str, Any]) 
     val = data['macros_confirmed']
     if val is True or (isinstance(val, str) and val.lower() in ('true', 'yes', 'confirm')):
         validated['macros_confirmed'] = True
+
+
+def _validate_dietary(data: Dict[str, Any], validated: Dict[str, Any]) -> None:
+    if 'dietary' not in data:
+        return
+    
+    dietary = data['dietary']
+    if not isinstance(dietary, list):
+        return
+    
+    validated_dietary = []
+    for item in dietary:
+        item = str(item).lower().strip().replace(' ', '_').replace('-', '_')
+        if item == 'none':
+            validated_dietary.append('none')
+            continue
+            
+        # Map common variations
+        item_map = {
+            'dairy': 'dairy_free', 'no_dairy': 'dairy_free',
+            'no_gluten': 'gluten_free', 'gluten': 'gluten_free',
+            'no_nut': 'nut_free', 'nut': 'nut_free', 'no_nuts': 'nut_free',
+            'pesc': 'pescatarian',
+        }
+        item = item_map.get(item, item)
+        
+        if item in DIETARY_PREFERENCE_FLAGS:
+            validated_dietary.append(item)
+            
+    if validated_dietary:
+        validated['dietary'] = list(set(validated_dietary))
+
