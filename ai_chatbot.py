@@ -5,7 +5,7 @@ This module re-exports from the chatbot package for backward compatibility.
 Actual implementation is in chatbot/service.py.
 """
 
-from chatbot.service import ai_chatbot, _format_user_info
+from .chatbot.service import ai_chatbot, _format_user_info
 
 __all__ = ['ai_chatbot']
 

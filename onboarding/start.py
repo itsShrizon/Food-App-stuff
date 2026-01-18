@@ -2,9 +2,9 @@
 
 from typing import Any, Dict
 
-from LLM_shared import chatbot
-from onboarding.config import ONBOARDING_FIELDS
-from onboarding.prompts import CONVERSATION_SYSTEM_PROMPT
+from ..LLM_shared import chatbot
+from .config import ONBOARDING_FIELDS
+from .prompts import CONVERSATION_SYSTEM_PROMPT
 
 
 def start_onboarding(

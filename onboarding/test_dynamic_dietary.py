@@ -4,8 +4,8 @@ import unittest
 from unittest.mock import patch, MagicMock
 import json
 
-from onboarding.flow import onboarding
-from onboarding.config import ONBOARDING_FIELDS
+from .flow import onboarding
+from .config import ONBOARDING_FIELDS
 
 # Mocking DIETARY_PREFERENCE_FLAGS for validation in tests if needed, 
 # but we trust the constants in the module.

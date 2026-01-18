@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 
-from onboarding.config import DIETARY_PREFERENCE_FLAGS
+from .config import DIETARY_PREFERENCE_FLAGS
 
 
 def get_default_dietary_preferences() -> Dict[str, bool]:

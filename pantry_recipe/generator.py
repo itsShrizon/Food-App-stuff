@@ -4,8 +4,8 @@ import json
 import re
 from typing import Any, Dict, List
 
-from core.llm import chatbot
-from pantry_recipe.config import SYSTEM_PROMPT
+from ..core.llm import chatbot
+from .config import SYSTEM_PROMPT
 
 
 def _clean_json_response(response: str) -> str:

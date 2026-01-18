@@ -3,8 +3,8 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from meal_generator.generator import generate_day_meals
-from meal_generator.config import VALID_MEAL_TYPES
+from .generator import generate_day_meals
+from .config import VALID_MEAL_TYPES
 
 
 def generate_meal_plan(
