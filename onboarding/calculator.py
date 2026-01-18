@@ -1,7 +1,7 @@
 """Metabolic profile calculator for onboarding."""
 
 from typing import Any, Dict
-
+import math
 from onboarding.config import ACTIVITY_MULTIPLIERS, TARGET_SPEED_RATES
 from onboarding.utils import convert_weight_to_kg, convert_height_to_cm
 
@@ -56,6 +56,7 @@ def calculate_metabolic_profile(
     diff = abs(weight_kg - target_kg)
     rate = TARGET_SPEED_RATES.get(target_speed, 0.5)
     weeks = 0.0 if goal == 'maintain' or diff < 0.5 else round(diff / rate, 1)
+    days = math.ceil(weeks * 7)
     
     return {
         'daily_calorie_target': round(daily_cal, 1),
@@ -64,5 +65,5 @@ def calculate_metabolic_profile(
         'fats_g': fats,
         'tdee': round(tdee, 1),
         'bmr': round(bmr, 1),
-        'estimated_weeks_to_goal': weeks,
+        'estimated_days_to_goal': days,
     }

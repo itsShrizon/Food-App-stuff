@@ -5,12 +5,6 @@ import re
 from datetime import datetime
 from typing import Any, Dict
 
-from onboarding.config import (
-    ACTIVITY_MULTIPLIERS,
-    DIETARY_PREFERENCE_FLAGS,
-    TARGET_SPEED_RATES,
-)
-
 
 def safe_parse_json(response: str) -> Dict[str, Any]:
     """Safely parse JSON from LLM response with fallback strategies."""
