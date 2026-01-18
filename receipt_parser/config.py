@@ -24,10 +24,12 @@ Return ONLY a valid JSON object in this exact format:
       "quantity": "amount",
       "unit": "unit of measurement",
       "price": "price as string",
-      "calories": "estimated kcal",
-      "protein": "estimated g",
-      "carbohydrate": "estimated g",
-      "fat": "estimated g"
+      "nutritional_info": {
+        "calories": {"value": "...", "unit": "kcal"},
+        "protein": {"value": "...", "unit": "g"},
+        "carbs": {"value": "...", "unit": "g"},
+        "fats": {"value": "...", "unit": "g"}
+      }
     }
   ],
   "total": "total amount or null"
