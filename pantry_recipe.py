@@ -1,101 +1,17 @@
-"""Pantry recipe generation module."""
+"""
+Pantry Recipe Module - Backward Compatible Facade.
 
-import json
-import re
-import sys
-from pathlib import Path
-from typing import Any, Dict, List
-
-# Ensure project root is in path for imports
-PROJECT_ROOT = Path(__file__).resolve().parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
-
-from LLM_shared import chatbot
-
-SYSTEM_PROMPT = """You are an expert chef and nutritionist.
-Generate 5+ distinct, healthy recipes using provided pantry items, aligned with user's goals.
-Return ONLY a valid JSON array.
-
-Format:
-[
-  {
-    "recipe_name": "string",
-    "servings": "number_of_people",
-    "ingredients": [
-      {
-        "name": "ingredient_name",
-        "quantity": "amount_with_unit"
-      }
-    ],
-    "recipe_process": "string",
-    "nutritional_values": {
-      "calories": "string",
-      "protein": "string",
-      "carbohydrate": "string",
-      "fat": "string"
-    }
-  }
-]
-
+This module re-exports from the pantry_recipe package for backward compatibility.
+Actual implementation is in pantry_recipe/ package.
 """
 
+from pantry_recipe import generate_pantry_recipes
 
-def _clean_json_response(response: str) -> str:
-    """Extract JSON from potential markdown formatting."""
-    response = response.strip()
-    if match := re.search(r"```(?:json)?(.*?)```", response, re.DOTALL):
-        return match.group(1).strip()
-    return response
-
-
-def generate_pantry_recipes(
-    items: List[str],
-    user_info: Dict[str, Any],
-    model: str = "gpt-4.1-mini",
-    temperature: float = 0.7,
-    **kwargs: Any,
-) -> List[Dict[str, Any]]:
-    """Generate recipes based on pantry items and user profile."""
-    if not items:
-        raise ValueError("Item list cannot be empty.")
-
-    user_details = "\n".join(
-        f"- {k.replace('_', ' ').title()}: {v}" for k, v in sorted(user_info.items())
-    )
-    prompt = (
-        f"User Profile:\n{user_details}\n\n"
-        f"Pantry Items: {', '.join(items)}\n\n"
-        "Generate at least 5 recipes aligned with the goal. Return JSON only."
-    )
-
-    try:
-        raw_response = chatbot(
-            user_message=prompt,
-            system_prompt=SYSTEM_PROMPT,
-            model=model,
-            temperature=temperature,
-            **kwargs,
-        )
-
-        json_str = _clean_json_response(raw_response)
-        data = json.loads(json_str)
-
-        recipes = data.get("recipes", data) if isinstance(data, dict) else data
-        if not isinstance(recipes, list):
-            raise ValueError("Output format invalid: expected a list of recipes.")
-        if len(recipes) < 5:
-            raise ValueError("Expected at least 5 recipes from the model.")
-
-        return recipes
-
-    except (json.JSONDecodeError, ValueError) as e:
-        raise ValueError(f"Recipe generation failed: {e}") from e
-    except Exception as e:
-        raise RuntimeError(f"Unexpected error: {e}") from e
-
+__all__ = ['generate_pantry_recipes']
 
 if __name__ == "__main__":
+    import json
+    
     sample_user = {
         "gender": "male",
         "date_of_birth": "1990-01-01",
