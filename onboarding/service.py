@@ -32,39 +32,7 @@ def _extract_data_with_llm(
         return {}
 
 
-def _extract_dietary_from_text(text: str) -> Dict[str, bool]:
-    """Extract dietary preferences directly from user text."""
-    text_lower = text.lower()
-    prefs = {}
-    
-    # Direct keyword matching
-    if 'vegan' in text_lower:
-        prefs['vegan'] = True
-    if 'dairy' in text_lower and ('free' in text_lower or 'no ' in text_lower):
-        prefs['dairy_free'] = True
-    if 'gluten' in text_lower and ('free' in text_lower or 'no ' in text_lower):
-        prefs['gluten_free'] = True
-    if 'nut' in text_lower and ('free' in text_lower or 'no ' in text_lower or 'allerg' in text_lower):
-        prefs['nut_free'] = True
-    if 'pescatarian' in text_lower or 'pescetarian' in text_lower:
-        prefs['pescatarian'] = True
-    
-    # Handle single word mentions
-    if 'gluten-free' in text_lower or 'glutenfree' in text_lower:
-        prefs['gluten_free'] = True
-    if 'dairy-free' in text_lower or 'dairyfree' in text_lower:
-        prefs['dairy_free'] = True
-    if 'nut-free' in text_lower or 'nutfree' in text_lower:
-        prefs['nut_free'] = True
-    
-    return prefs
 
-
-def _should_skip_optional(user_message: str) -> bool:
-    """Check if user wants to skip optional fields."""
-    text = user_message.lower()
-    skip_words = ['skip', 'none', 'nothing', "don't have", "no restrictions", "no allergies", "no preference", "that's all", "thats all"]
-    return any(kw in text for kw in skip_words)
 
 
 def _has_all_for_macros(data: Dict[str, Any]) -> bool:
