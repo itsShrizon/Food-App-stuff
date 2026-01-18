@@ -43,6 +43,7 @@ Generate a {meal_type} meal that:
 1. Aligns with {user_info['goal']} goal
 2. Matches {user_info['activity_level']} activity level
 3. Provides balanced nutrition
+4. servings: How many servings, default 1 integer value
 
 Return ONLY valid JSON."""
     
@@ -82,7 +83,7 @@ def generate_day_meals(
     prompt = f"""{user_context}{previous_context}
 
 Generate a complete daily meal plan with Breakfast, Snacks, Lunch, Dinner.
-Return ONLY valid JSON with keys: "Breakfast", "Snacks", "Lunch", "Dinner".
+Return ONLY valid JSON with keys: "breakfast", "snacks", "lunch", "dinner".
 """
 
     try:

@@ -12,23 +12,47 @@ def calculate_age(date_of_birth: str) -> int:
         return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
     except Exception:
         return 25
-
+    
+def parse_nutritional_value(value: Any) -> Dict[str, str]:
+    """Parse nutritional value that could be string or dict format."""
+    if isinstance(value, dict):
+        return {
+            "value": str(value.get("value", "0")),
+            "unit": str(value.get("unit", ""))
+        }
+    # If it's a string like "0kcal" or "0g", try to extract value and unit
+    if isinstance(value, str):
+        import re
+        match = re.match(r'([\d.]+)\s*(\w+)?', value)
+        if match:
+            return {
+                "value": match.group(1),
+                "unit": match.group(2) or ""
+            }
+    return {"value": "0", "unit": ""}
 
 def ensure_meal_schema(meal_data: Dict[str, Any], fallback_meal_type: str) -> Dict[str, Any]:
     """Fill in any schema gaps returned by the LLM."""
     meal_data.setdefault('meal_type', fallback_meal_type)
-    meal_data.setdefault('meal_name', 'Untitled Meal')
+    meal_data.setdefault('name', 'Untitled Meal')
     meal_data.setdefault('meal_description', 'No description provided.')
-    meal_data.setdefault('preparation_time', 'N/A')
+    meal_data.setdefault('prepare_time', 'N/A')
     meal_data.setdefault('cooking_instructions', 'N/A')
+    meal_data.setdefault('source', 'ai')
+    meal_data.setdefault('servings', 1)
+    meal_data.setdefault('tags', [])
 
-    nutritional_info = meal_data.get('nutritional_info') or {}
-    meal_data['nutritional_info'] = {
-        'calories': nutritional_info.get('calories', '0kcal'),
-        'protein': nutritional_info.get('protein', '0g'),
-        'carbohydrate': nutritional_info.get('carbohydrate', '0g'),
-        'fat': nutritional_info.get('fat', '0g'),
+    # Parse nutritional info with new structure
+    nutritional_info = meal_data.get('nutrients') or meal_data.get('nutritional_info') or {}
+    meal_data['nutrients'] = {
+        'calories': parse_nutritional_value(nutritional_info.get('calories', {'value': '0', 'unit': 'kcal'})),
+        'protein': parse_nutritional_value(nutritional_info.get('protein', {'value': '0', 'unit': 'g'})),
+        'carbs': parse_nutritional_value(nutritional_info.get('carbs', {'value': '0', 'unit': 'g'})),
+        'fats': parse_nutritional_value(nutritional_info.get('fats', {'value': '0', 'unit': 'g'})),
     }
+
+    # Remove old nutritional_info key if it exists
+    meal_data.pop('nutritional_info', None)
 
     ingredients = meal_data.get('ingredients')
     if not isinstance(ingredients, list) or not ingredients:
@@ -57,7 +81,7 @@ def build_previous_meals_context(previous_meals: List[Dict[str, Any]], max_items
     if not previous_meals:
         return ""
     recent = previous_meals[-max_items:]
-    names = [m.get('meal_name', 'Unknown') for m in recent]
+    names = [m.get('name', 'Unknown') for m in recent]
     return f"\n\nRecent meals: {', '.join(names)}\nGenerate different meals for variety."
 
 
