@@ -1,59 +1,57 @@
-from onboarding import start_onboarding, onboarding
+"""Interactive onboarding runner."""
+from onboarding import start_onboarding, onboarding, format_output_for_db, ONBOARDING_FIELDS
 import json
 
 def main():
     print("="*60)
-    print("🏋️  FITNESS ONBOARDING - LLM-Powered Data Extraction")
+    print("FITNESS ONBOARDING - AI-Powered Data Extraction")
     print("="*60)
     print()
     
-    # Start onboarding
     result = start_onboarding()
     print(f"Bot: {result['message']}\n")
     
-    # Continue conversation until complete
     while not result['is_complete']:
-        # Show progress
-        collected_count = len(result['collected_data'])
-        total_required = 14
+        # Count only ONBOARDING_FIELDS for progress
+        collected_count = sum(1 for f in ONBOARDING_FIELDS if f in result['collected_data'])
+        total_required = len(ONBOARDING_FIELDS)
+        
         print(f"\n{'─'*60}")
-        print(f"📊 Progress: {collected_count}/{total_required} fields | Next: {result.get('next_field', 'N/A')}")
+        print(f"Progress: {collected_count}/{total_required} fields | Next: {result.get('next_field', 'dietary preferences')}")
         
         if collected_count > 0:
-            print(f"✓ Collected: {', '.join(result['collected_data'].keys())}")
+            fields = [f for f in result['collected_data'].keys() if f in ONBOARDING_FIELDS]
+            print(f"Collected: {', '.join(fields)}")
         print(f"{'─'*60}\n")
         
-        # Get user input
         try:
             user_input = input("You: ").strip()
         except KeyboardInterrupt:
-            print("\n\n👋 Onboarding cancelled. Goodbye!")
+            print("\n\nOnboarding cancelled.")
             return
         
         if not user_input:
             print("Please provide an answer.\n")
             continue
         
-        # Process response with LLM extraction
-        print("\n🤖 Processing with AI...", end="", flush=True)
         result = onboarding(
             user_message=user_input,
             conversation_history=result['conversation_history'],
             collected_data=result['collected_data']
         )
-        print("\r" + " "*30 + "\r", end="")  # Clear processing message
         
-        print(f"Bot: {result['message']}\n")
+        print(f"\nBot: {result['message']}\n")
         
         if result['is_complete']:
             print("\n" + "="*60)
-            print("✅ ONBOARDING COMPLETE!")
+            print("ONBOARDING COMPLETE!")
             print("="*60)
-            print("\n📋 Collected Profile Data (JSON):\n")
-            print(json.dumps(result['collected_data'], indent=2))
+            
+            # Use the DB format output
+            db_output = result.get('db_format') or format_output_for_db(result['collected_data'])
+            print("\nDB-Ready JSON Output:\n")
+            print(json.dumps(db_output, indent=2))
             print("\n" + "="*60)
-            print("✨ This data is ready to send to your backend!")
-            print("="*60)
             break
 
 if __name__ == "__main__":

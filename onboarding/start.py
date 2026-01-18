@@ -9,8 +9,8 @@ from onboarding.prompts import CONVERSATION_SYSTEM_PROMPT
 
 def start_onboarding(
     *,
-    model: str = "gpt-4.1-nano",
-    temperature: float = 0.7,
+    model: str = "gpt-4.1-mini",
+    temperature: float = 0.3,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """Start a new onboarding conversation."""
@@ -26,7 +26,7 @@ def start_onboarding(
 
     try:
         welcome = chatbot(
-            user_message="Start onboarding. Give a warm welcome and ask about gender and age naturally.",
+            user_message="Start onboarding. Give a warm welcome and ask about gender.",
             system_prompt=system_prompt,
             model=model,
             temperature=temperature,
@@ -34,7 +34,7 @@ def start_onboarding(
         )
     except Exception as e:
         print(f"Start error (failsafe): {e}")
-        welcome = "Hey! I'm excited to help you on your fitness journey! What's your gender, and when were you born?"
+        welcome = "Hey! I'm excited to help you on your fitness journey! What's your gender"
 
     return {
         'message': welcome,

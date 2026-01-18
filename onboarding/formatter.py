@@ -43,7 +43,7 @@ def format_output_for_db(collected_data: Dict[str, Any]) -> Dict[str, Any]:
         'fats_g': 0.0,
         'tdee': 0.0,
         'bmr': 0.0,
-        'estimated_weeks_to_goal': 0.0,
+        'estimated_days_to_goal': 0,
     })
     
     return {

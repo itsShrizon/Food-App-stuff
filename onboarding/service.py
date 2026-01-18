@@ -4,11 +4,10 @@ from typing import Any, Dict, List, Optional
 
 from LLM_shared import chatbot
 from onboarding.config import ONBOARDING_FIELDS, DIETARY_PREFERENCE_FLAGS
-from onboarding.prompts import EXTRACTION_SYSTEM_PROMPT, CONVERSATION_SYSTEM_PROMPT
+from onboarding.prompts import EXTRACTION_SYSTEM_PROMPT
 from onboarding.utils import safe_parse_json, calculate_age
 from onboarding.validators import validate_extracted_data
 from onboarding.calculator import calculate_metabolic_profile
-from onboarding.formatter import format_output_for_db
 
 
 def _extract_data_with_llm(
@@ -29,14 +28,43 @@ def _extract_data_with_llm(
         )
         return validate_extracted_data(safe_parse_json(response))
     except Exception as e:
-        print(f"Extraction error (failsafe): {e}")
+        print(f"Extraction error: {e}")
         return {}
+
+
+def _extract_dietary_from_text(text: str) -> Dict[str, bool]:
+    """Extract dietary preferences directly from user text."""
+    text_lower = text.lower()
+    prefs = {}
+    
+    # Direct keyword matching
+    if 'vegan' in text_lower:
+        prefs['vegan'] = True
+    if 'dairy' in text_lower and ('free' in text_lower or 'no ' in text_lower):
+        prefs['dairy_free'] = True
+    if 'gluten' in text_lower and ('free' in text_lower or 'no ' in text_lower):
+        prefs['gluten_free'] = True
+    if 'nut' in text_lower and ('free' in text_lower or 'no ' in text_lower or 'allerg' in text_lower):
+        prefs['nut_free'] = True
+    if 'pescatarian' in text_lower or 'pescetarian' in text_lower:
+        prefs['pescatarian'] = True
+    
+    # Handle single word mentions
+    if 'gluten-free' in text_lower or 'glutenfree' in text_lower:
+        prefs['gluten_free'] = True
+    if 'dairy-free' in text_lower or 'dairyfree' in text_lower:
+        prefs['dairy_free'] = True
+    if 'nut-free' in text_lower or 'nutfree' in text_lower:
+        prefs['nut_free'] = True
+    
+    return prefs
 
 
 def _should_skip_optional(user_message: str) -> bool:
     """Check if user wants to skip optional fields."""
-    skip_words = ['skip', 'none', 'no ', 'nothing', "don't have", "no restrictions"]
-    return any(kw in user_message.lower() for kw in skip_words)
+    text = user_message.lower()
+    skip_words = ['skip', 'none', 'nothing', "don't have", "no restrictions", "no allergies", "no preference", "that's all", "thats all"]
+    return any(kw in text for kw in skip_words)
 
 
 def _has_all_for_macros(data: Dict[str, Any]) -> bool:
@@ -70,7 +98,7 @@ def _calculate_macros_if_ready(collected_data: Dict[str, Any]) -> bool:
         )
         return True
     except Exception as e:
-        print(f"Macro calculation error (failsafe): {e}")
+        print(f"Macro calculation error: {e}")
         return False
 
 
@@ -82,6 +110,6 @@ def _build_completion_message(collected_data: Dict[str, Any]) -> str:
         msg += f"**Your Daily Targets:**\n"
         msg += f"- Calories: {mp['daily_calorie_target']} kcal\n"
         msg += f"- Protein: {mp['protein_g']}g | Carbs: {mp['carbs_g']}g | Fat: {mp['fats_g']}g\n"
-        if mp['estimated_weeks_to_goal'] > 0:
-            msg += f"\nEstimated time to goal: {mp['estimated_weeks_to_goal']} weeks"
+        if mp.get('estimated_days_to_goal', 0) > 0:
+            msg += f"\nEstimated time to goal: {mp['estimated_days_to_goal']} days"
     return msg
