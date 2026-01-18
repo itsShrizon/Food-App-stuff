@@ -9,7 +9,7 @@ from onboarding.prompts import CONVERSATION_SYSTEM_PROMPT
 
 def start_onboarding(
     *,
-    model: str = "gpt-4.1-mini",
+    model: str = "gpt-4.1-2025-04-14",
     temperature: float = 0.3,
     **kwargs: Any,
 ) -> Dict[str, Any]:

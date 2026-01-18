@@ -15,13 +15,27 @@ def _extract_data_with_llm(
     model: str = "gpt-4.1-nano",
 ) -> Dict[str, Any]:
     """Extract data from conversation using LLM."""
-    conversation_text = "\n".join([
-        f"{msg['role']}: {msg['content']}" for msg in conversation_history
-    ])
+    # Get the last assistant message and user message for context
+    last_assistant_message = ""
+    last_user_message = ""
+    
+    for msg in reversed(conversation_history):
+        if msg['role'] == 'user' and not last_user_message:
+            last_user_message = msg['content']
+        elif msg['role'] == 'assistant' and not last_assistant_message and last_user_message:
+            last_assistant_message = msg['content']
+            break
+    
+    if not last_user_message:
+        return {}
     
     try:
+        # Include last bot question for context
+        context = f"Bot asked: \"{last_assistant_message}\"\n" if last_assistant_message else ""
+        context += f"User responded: \"{last_user_message}\""
+        
         response = chatbot(
-            user_message=f"Extract data from:\n{conversation_text}\n\nReturn ONLY JSON.",
+            user_message=f"Extract data from this exchange:\n{context}\n\nReturn ONLY JSON.",
             system_prompt=EXTRACTION_SYSTEM_PROMPT,
             model=model,
             temperature=0.0,

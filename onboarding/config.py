@@ -11,7 +11,7 @@ ONBOARDING_FIELDS = (
 
 # Dietary preference flags (nested object in DB)
 DIETARY_PREFERENCE_FLAGS = (
-    'vegan', 'dairy_free', 'gluten_free', 'nut_free', 'pescatarian',
+    'none', 'vegan', 'dairy_free', 'gluten_free', 'nut_free', 'pescatarian',
 )
 
 # Activity level multipliers for TDEE calculation
