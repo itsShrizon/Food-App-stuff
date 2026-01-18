@@ -1,53 +1,17 @@
-"""Simple AI chatbot using the shared LLM wrapper."""
+"""
+AI Chatbot Module - Backward Compatible Facade.
 
-from typing import Any, Dict, List, Optional
+This module re-exports from the chatbot package for backward compatibility.
+Actual implementation is in chatbot/service.py.
+"""
 
-from LLM_shared import chatbot
+from chatbot.service import ai_chatbot, _format_user_info
 
-
-def _format_user_info(user_info: Dict[str, Any]) -> str:
-    """Format user profile into a short, readable block."""
-    lines = [f"- {k.replace('_', ' ').title()}: {v}" for k, v in sorted(user_info.items())]
-    return "\n".join(lines)
-
-
-def ai_chatbot(
-    user_message: str,
-    user_info: Dict[str, Any],
-    conversation_history: Optional[List[Dict[str, str]]] = None,
-    *,
-    system_prompt: str = "You are a helpful assistant.",
-    model: str = "gpt-4o-mini",
-    temperature: float = 0.7,
-    streaming: bool = True,
-    **kwargs: Any,
-) -> Dict[str, Any]:
-    """Chat using the shared LLM wrapper with simple history handling."""
-
-    history: List[Dict[str, str]] = conversation_history[:] if conversation_history else []
-
-    profile_block = _format_user_info(user_info)
-    prompt = f"{system_prompt}\n\nUser Profile:\n{profile_block}"
-
-    result = chatbot(
-        user_message=user_message,
-        system_prompt=prompt,
-        conversation_history=history,
-        model=model,
-        temperature=temperature,
-        streaming=streaming,
-        **kwargs,
-    )
-
-    updated_history = history + [
-        {"role": "user", "content": user_message},
-        {"role": "assistant", "content": result},
-    ]
-
-    return {"response": result, "history": updated_history}
-
+__all__ = ['ai_chatbot']
 
 if __name__ == "__main__":
+    from typing import Dict, List
+    
     demo_user = {
         "gender": "male",
         "date_of_birth": "1990-01-01",
@@ -62,7 +26,7 @@ if __name__ == "__main__":
     }
 
     chat_history: List[Dict[str, str]] = []
-    chat_history.append({"role": "assistant", "content": "Hi! How can I help with your plan today?"})
+    chat_history.append({"role": "assistant", "content": "Hi! How can I help?"})
 
     reply = ai_chatbot(
         "Suggest a quick healthy dinner from pantry items.",
