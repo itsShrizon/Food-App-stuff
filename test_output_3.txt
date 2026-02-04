@@ -1,0 +1,310 @@
+/home/tanzir/Downloads/RepoGraveyard/Food-App-stuff/.venv_new/lib/python3.12/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.4, pluggy-1.6.0
+rootdir: /home/tanzir/Downloads/RepoGraveyard/Food-App-stuff
+plugins: asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 55 items
+
+test_meal_generator.py .........FF.F.FFF....                             [ 38%]
+test_onboarding.py ..................................                    [100%]
+
+=================================== FAILURES ===================================
+_________________ TestGenerateMeal.test_generate_meal_success __________________
+
+self = <test_meal_generator.TestGenerateMeal object at 0x77028a1899d0>
+mock_chatbot = <MagicMock name='chatbot' id='130852789202736'>
+
+    @patch("app.core.llm.chatbot")
+    def test_generate_meal_success(self, mock_chatbot):
+        """Test successful meal generation."""
+        mock_chatbot.return_value = json.dumps({
+            "meal_type": "Lunch",
+            "meal_name": "Grilled Chicken Salad",
+            "meal_description": "A healthy protein-rich salad",
+            "ingredients": [
+                {"name": "Chicken breast", "amount": "150g"},
+                {"name": "Mixed greens", "amount": "100g"}
+            ],
+            "preparation_time": "20 minutes",
+            "cooking_instructions": "Grill chicken, slice, serve over greens",
+            "nutritional_info": {
+                "calories": "320kcal",
+                "protein": "35g",
+                "carbohydrate": "8g",
+                "fat": "15g"
+            }
+        })
+    
+        user_info = self.get_sample_user_info()
+        result = generate_meal(user_info, meal_type="Lunch")
+    
+        assert result["meal_type"] == "lunch"
+>       assert result["name"] == "Grilled Chicken Salad"
+E       AssertionError: assert 'Untitled Meal' == 'Grilled Chicken Salad'
+E         
+E         - Grilled Chicken Salad
+E         + Untitled Meal
+
+test_meal_generator.py:131: AssertionError
+__________ TestGenerateMeal.test_generate_meal_with_markdown_cleanup ___________
+
+self = <test_meal_generator.TestGenerateMeal object at 0x77028a189af0>
+mock_chatbot = <MagicMock name='chatbot' id='130852789787040'>
+
+        @patch("app.core.llm.chatbot")
+        def test_generate_meal_with_markdown_cleanup(self, mock_chatbot):
+            """Test that markdown code blocks are cleaned from response."""
+            mock_chatbot.return_value = """```json
+    {
+        "meal_type": "Breakfast",
+        "meal_name": "Protein Oatmeal",
+        "meal_description": "Healthy breakfast",
+        "ingredients": [{"name": "Oats", "amount": "50g"}],
+        "preparation_time": "10 minutes",
+        "cooking_instructions": "Cook oats with water",
+        "nutritional_info": {
+            "calories": "250kcal",
+            "protein": "15g",
+            "carbohydrate": "40g",
+            "fat": "5g"
+        }
+    }```"""
+    
+            user_info = self.get_sample_user_info()
+            result = generate_meal(user_info, meal_type="Breakfast")
+    
+            assert result["meal_type"] == "breakfast"
+>           assert result["name"] == "Protein Oatmeal"
+E           AssertionError: assert 'Untitled Meal' == 'Protein Oatmeal'
+E             
+E             - Protein Oatmeal
+E             + Untitled Meal
+
+test_meal_generator.py:159: AssertionError
+_ TestGenerateMealWithPreviousMeals.test_generate_meal_with_empty_previous_meals _
+
+self = <test_meal_generator.TestGenerateMealWithPreviousMeals object at 0x77028a189eb0>
+mock_chatbot = <MagicMock name='chatbot' id='130852789791792'>
+
+    @patch("app.core.llm.chatbot")
+    def test_generate_meal_with_empty_previous_meals(self, mock_chatbot):
+        """Test meal generation with empty previous meals list."""
+        mock_chatbot.return_value = json.dumps({
+            "meal_type": "Breakfast",
+            "meal_name": "Scrambled Eggs",
+            "meal_description": "Protein-rich breakfast",
+            "ingredients": [{"name": "Eggs", "amount": "3 pieces"}],
+            "preparation_time": "10 minutes",
+            "cooking_instructions": "Scramble eggs in pan",
+            "nutritional_info": {
+                "calories": "210kcal",
+                "protein": "18g",
+                "carbohydrate": "2g",
+                "fat": "15g"
+            }
+        })
+    
+        user_info = self.get_sample_user_info()
+        result = generate_meal(user_info, meal_type="Breakfast", previous_meals=[])
+    
+>       assert result["name"] == "Scrambled Eggs"
+E       AssertionError: assert 'Untitled Meal' == 'Scrambled Eggs'
+E         
+E         - Scrambled Eggs
+E         + Untitled Meal
+
+test_meal_generator.py:240: AssertionError
+_ TestGenerateMealWithPreviousMeals.test_generate_meal_with_multiple_previous_meals _
+
+self = <test_meal_generator.TestGenerateMealWithPreviousMeals object at 0x77028a18a210>
+mock_chatbot = <MagicMock name='chatbot' id='130852789781280'>
+
+    @patch("app.core.llm.chatbot")
+    def test_generate_meal_with_multiple_previous_meals(self, mock_chatbot):
+        """Test meal generation with multiple previous meals."""
+        mock_chatbot.return_value = json.dumps({
+            "meal_type": "Dinner",
+            "meal_name": "Chicken Stir Fry",
+            "meal_description": "Asian-inspired dinner",
+            "ingredients": [
+                {"name": "Chicken breast", "amount": "150g"},
+                {"name": "Mixed vegetables", "amount": "200g"},
+                {"name": "Soy sauce", "amount": "2 tablespoons"}
+            ],
+            "preparation_time": "25 minutes",
+            "cooking_instructions": "Stir fry chicken and vegetables",
+            "nutritional_info": {
+                "calories": "380kcal",
+                "protein": "40g",
+                "carbohydrate": "25g",
+                "fat": "12g"
+            }
+        })
+    
+        previous_meals = [
+            {
+                "meal_type": "Breakfast",
+                "meal_name": "Scrambled Eggs with Toast",
+                "ingredients": [{"name": "Eggs", "amount": "2 pieces"}]
+            },
+            {
+                "meal_type": "Snacks",
+                "meal_name": "Apple with Almond Butter",
+                "ingredients": [{"name": "Apple", "amount": "1 piece"}]
+            },
+            {
+                "meal_type": "Lunch",
+                "meal_name": "Grilled Chicken Salad",
+                "ingredients": [{"name": "Chicken", "amount": "120g"}]
+            }
+        ]
+    
+        user_info = self.get_sample_user_info()
+        result = generate_meal(user_info, meal_type="Dinner", previous_meals=previous_meals)
+    
+        assert result["meal_type"] == "dinner"
+>       assert result["name"] == "Chicken Stir Fry"
+E       AssertionError: assert 'Untitled Meal' == 'Chicken Stir Fry'
+E         
+E         - Chicken Stir Fry
+E         + Untitled Meal
+
+test_meal_generator.py:324: AssertionError
+_ TestGenerateMealWithPreviousMeals.test_previous_meals_without_meal_name_field _
+
+self = <test_meal_generator.TestGenerateMealWithPreviousMeals object at 0x77028a18a390>
+mock_chatbot = <MagicMock name='chatbot' id='130852789787712'>
+
+    @patch("app.core.llm.chatbot")
+    def test_previous_meals_without_meal_name_field(self, mock_chatbot):
+        """Test handling of previous meals without meal_name field."""
+        mock_chatbot.return_value = json.dumps({
+            "meal_type": "Lunch",
+            "meal_name": "Quinoa Bowl",
+            "meal_description": "Healthy grain bowl",
+            "ingredients": [{"name": "Quinoa", "amount": "100g"}],
+            "preparation_time": "30 minutes",
+            "cooking_instructions": "Cook quinoa and add toppings",
+            "nutritional_info": {
+                "calories": "350kcal",
+                "protein": "12g",
+                "carbohydrate": "55g",
+                "fat": "8g"
+            }
+        })
+    
+        # Previous meal without meal_name field
+        previous_meals = [
+            {
+                "meal_type": "Breakfast",
+                "ingredients": [{"name": "Oats", "amount": "50g"}]
+            }
+        ]
+    
+        user_info = self.get_sample_user_info()
+        # Should not raise exception
+        result = generate_meal(user_info, meal_type="Lunch", previous_meals=previous_meals)
+    
+>       assert result["name"] == "Quinoa Bowl"
+E       AssertionError: assert 'Untitled Meal' == 'Quinoa Bowl'
+E         
+E         - Quinoa Bowl
+E         + Untitled Meal
+
+test_meal_generator.py:361: AssertionError
+______ TestGenerateDailyMealPlan.test_generate_daily_meal_plan_all_meals _______
+
+self = <test_meal_generator.TestGenerateDailyMealPlan object at 0x77028a18a5a0>
+mock_chatbot = <MagicMock name='chatbot' id='130852789206720'>
+
+    @patch("app.core.llm.chatbot")
+    def test_generate_daily_meal_plan_all_meals(self, mock_chatbot):
+        """Test that daily plan generates all 4 meal types."""
+        # Mock responses for all 4 meals
+        mock_chatbot.side_effect = [
+            json.dumps({
+                "meal_type": "Breakfast",
+                "meal_name": "Protein Pancakes",
+                "meal_description": "High protein breakfast",
+                "ingredients": [{"name": "Eggs", "amount": "2 pieces"}],
+                "preparation_time": "15 minutes",
+                "cooking_instructions": "Mix and cook",
+                "nutritional_info": {"calories": "300kcal", "protein": "25g", "carbohydrate": "35g", "fat": "8g"}
+            }),
+            json.dumps({
+                "meal_type": "Snacks",
+                "meal_name": "Protein Smoothie",
+                "meal_description": "Quick snack",
+                "ingredients": [{"name": "Protein powder", "amount": "30g"}],
+                "preparation_time": "5 minutes",
+                "cooking_instructions": "Blend all",
+                "nutritional_info": {"calories": "180kcal", "protein": "20g", "carbohydrate": "15g", "fat": "5g"}
+            }),
+            json.dumps({
+                "meal_type": "Lunch",
+                "meal_name": "Chicken Caesar Salad",
+                "meal_description": "Filling lunch",
+                "ingredients": [{"name": "Chicken", "amount": "150g"}],
+                "preparation_time": "20 minutes",
+                "cooking_instructions": "Grill and toss",
+                "nutritional_info": {"calories": "400kcal", "protein": "38g", "carbohydrate": "20g", "fat": "18g"}
+            }),
+            json.dumps({
+                "meal_type": "Dinner",
+                "meal_name": "Baked Salmon with Vegetables",
+                "meal_description": "Healthy dinner",
+                "ingredients": [{"name": "Salmon", "amount": "200g"}],
+                "preparation_time": "30 minutes",
+                "cooking_instructions": "Bake at 375F",
+                "nutritional_info": {"calories": "450kcal", "protein": "42g", "carbohydrate": "15g", "fat": "25g"}
+            })
+        ]
+    
+        user_info = self.get_sample_user_info()
+        meal_plan = generate_daily_meal_plan(user_info)
+    
+        # Check all meal types are present
+        assert "breakfast" in meal_plan
+        assert "snacks" in meal_plan
+        assert "lunch" in meal_plan
+        assert "dinner" in meal_plan
+    
+        # Verify each meal has correct structure
+        for meal_type, meal in meal_plan.items():
+            assert meal["meal_type"] == meal_type
+            assert "name" in meal
+            assert "ingredients" in meal
+>           assert "nutritional_info" in meal
+E           AssertionError: assert 'nutritional_info' in {'cooking_instructions': 'N/A', 'ingredients': [{'name': 'Sample Ingredient', 'nutritional_info': {}, 'quantity': '1', 'unit': 'serving'}], 'meal_description': 'No description provided.', 'meal_type': 'breakfast', ...}
+
+test_meal_generator.py:438: AssertionError
+=============================== warnings summary ===============================
+test_meal_generator.py: 172 warnings
+  /home/tanzir/Downloads/RepoGraveyard/Food-App-stuff/.venv_new/lib/python3.12/site-packages/langchain_core/load/serializable.py:289: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    field = inst.model_fields.get(key)
+
+test_meal_generator.py: 80 warnings
+  /home/tanzir/Downloads/RepoGraveyard/Food-App-stuff/.venv_new/lib/python3.12/site-packages/langchain_core/load/serializable.py:213: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    if k in self.model_fields and self.model_fields[k].exclude:
+
+test_meal_generator.py: 60 warnings
+  /home/tanzir/Downloads/RepoGraveyard/Food-App-stuff/.venv_new/lib/python3.12/site-packages/langchain_core/load/serializable.py:249: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    if key in this.model_fields:
+
+test_meal_generator.py: 32 warnings
+  /home/tanzir/Downloads/RepoGraveyard/Food-App-stuff/.venv_new/lib/python3.12/site-packages/langchain_core/load/serializable.py:250: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    alias = this.model_fields[key].alias
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED test_meal_generator.py::TestGenerateMeal::test_generate_meal_success
+FAILED test_meal_generator.py::TestGenerateMeal::test_generate_meal_with_markdown_cleanup
+FAILED test_meal_generator.py::TestGenerateMealWithPreviousMeals::test_generate_meal_with_empty_previous_meals
+FAILED test_meal_generator.py::TestGenerateMealWithPreviousMeals::test_generate_meal_with_multiple_previous_meals
+FAILED test_meal_generator.py::TestGenerateMealWithPreviousMeals::test_previous_meals_without_meal_name_field
+FAILED test_meal_generator.py::TestGenerateDailyMealPlan::test_generate_daily_meal_plan_all_meals
+================= 6 failed, 49 passed, 344 warnings in 24.89s ==================

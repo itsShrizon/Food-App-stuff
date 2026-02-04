@@ -19,7 +19,8 @@ Architecture:
 """
 
 # Re-export everything from the package for backward compatibility
-from onboarding import (
+# Re-export everything from the package for backward compatibility
+from app.services.onboarding import (
     # Config
     ONBOARDING_FIELDS,
     DIETARY_PREFERENCE_FLAGS,
@@ -40,8 +41,12 @@ from onboarding import (
     get_default_dietary_preferences as _get_default_dietary_preferences,
     # Main flow
     onboarding,
+    onboarding,
     start_onboarding,
 )
+
+# Internal helper exposed for testing
+from app.services.onboarding.service import _extract_data_with_llm
 
 
 # Legacy alias for backward compatibility

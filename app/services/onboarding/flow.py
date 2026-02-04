@@ -1,0 +1,105 @@
+"""Main onboarding flow function."""
+
+from typing import Any, Dict, List, Optional
+
+from .config import ONBOARDING_FIELDS, DIETARY_PREFERENCE_FLAGS
+from .formatter import format_output_for_db
+from .service import (
+    _extract_data_with_llm,
+    _calculate_macros_if_ready,
+    _build_completion_message,
+)
+from .flow_helpers import is_confirmation, generate_response
+
+
+def onboarding(
+    user_message: str,
+    *,
+    conversation_history: Optional[List[Dict[str, str]]] = None,
+    collected_data: Optional[Dict[str, Any]] = None,
+    model: str = "gpt-4.1-2025-04-14",
+    temperature: float = 0.1,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """Process user response and continue onboarding flow."""
+    conversation_history = list(conversation_history or [])
+    collected_data = dict(collected_data or {})
+    
+    conversation_history.append({"role": "user", "content": user_message})
+    
+    # Extract data
+    extracted = _extract_data_with_llm(conversation_history, model)
+    
+    # Update only valid onboarding fields
+    for field in ONBOARDING_FIELDS:
+        if field in extracted and extracted[field] is not None:
+            collected_data[field] = extracted[field]
+            
+    # Handle Age -> Date of Birth conversion
+    if 'date_of_birth' not in collected_data and 'age' in extracted:
+        from datetime import date, timedelta
+        # Estimate DOB: Today - Age * 365
+        today = date.today()
+        dob = today - timedelta(days=extracted['age'] * 365)
+        collected_data['date_of_birth'] = dob.strftime("%Y-%m-%d")
+    
+    # Check for macro confirmation
+    macros_shown = 'metabolic_profile' in collected_data and not collected_data.get('macros_confirmed')
+    if macros_shown and is_confirmation(user_message):
+        collected_data['macros_confirmed'] = True
+    
+    if extracted.get('macros_confirmed') and 'metabolic_profile' in collected_data:
+        collected_data['macros_confirmed'] = True
+    
+    # Extract dietary preferences AFTER macros confirmed
+    # Process dietary preferences from LLM
+    if 'dietary' in extracted:
+        dietary_list = extracted['dietary']
+        if 'none' in dietary_list:
+            collected_data['none'] = True
+            collected_data['dietary_none_stated'] = True
+        else:
+            collected_data['dietary_none_stated'] = False
+            for pref in dietary_list:
+                if pref in DIETARY_PREFERENCE_FLAGS:
+                    collected_data[pref] = True
+    
+    # Calculate macros if ready
+    macros_calculated = _calculate_macros_if_ready(collected_data)
+    macros_confirmed = collected_data.get('macros_confirmed', False)
+    
+    # Check missing and completion
+    required_fields = list(ONBOARDING_FIELDS)
+    missing = [f for f in required_fields if f not in collected_data]
+    
+    # Check dietary - done if ANY preference captured OR user explicitly said none
+    dietary_done = any(p in collected_data for p in DIETARY_PREFERENCE_FLAGS) or collected_data.get('dietary_none_stated')
+    
+    is_complete = len(missing) == 0 and macros_confirmed and dietary_done
+    
+    if is_complete:
+        msg = _build_completion_message(collected_data)
+        conversation_history.append({"role": "assistant", "content": msg})
+        return {
+            "message": msg, "conversation_history": conversation_history,
+            "collected_data": collected_data, "is_complete": True,
+            "next_field": None, "metabolic_profile": collected_data.get('metabolic_profile'),
+            "db_format": format_output_for_db(collected_data),
+        }
+    
+    if not missing and macros_confirmed and not collected_data.get('dietary_asked'):
+        collected_data['dietary_asked'] = True
+    
+    response = generate_response(
+        user_message, collected_data, conversation_history,
+        missing, macros_calculated, macros_confirmed, model, temperature
+    )
+    conversation_history.append({"role": "assistant", "content": response})
+    
+    return {
+        "message": response, "conversation_history": conversation_history,
+        "collected_data": collected_data, "is_complete": False,
+        "next_field": missing[0] if missing else None,
+        "metabolic_profile": collected_data.get('metabolic_profile'),
+        "db_format": None,
+    }

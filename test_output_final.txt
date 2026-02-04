@@ -1,0 +1,33 @@
+/home/tanzir/Downloads/RepoGraveyard/Food-App-stuff/.venv_new/lib/python3.12/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.4, pluggy-1.6.0
+rootdir: /home/tanzir/Downloads/RepoGraveyard/Food-App-stuff
+plugins: asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 55 items
+
+test_meal_generator.py .....................                             [ 38%]
+test_onboarding.py ..................................                    [100%]
+
+=============================== warnings summary ===============================
+test_meal_generator.py: 172 warnings
+  /home/tanzir/Downloads/RepoGraveyard/Food-App-stuff/.venv_new/lib/python3.12/site-packages/langchain_core/load/serializable.py:289: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    field = inst.model_fields.get(key)
+
+test_meal_generator.py: 80 warnings
+  /home/tanzir/Downloads/RepoGraveyard/Food-App-stuff/.venv_new/lib/python3.12/site-packages/langchain_core/load/serializable.py:213: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    if k in self.model_fields and self.model_fields[k].exclude:
+
+test_meal_generator.py: 60 warnings
+  /home/tanzir/Downloads/RepoGraveyard/Food-App-stuff/.venv_new/lib/python3.12/site-packages/langchain_core/load/serializable.py:249: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    if key in this.model_fields:
+
+test_meal_generator.py: 32 warnings
+  /home/tanzir/Downloads/RepoGraveyard/Food-App-stuff/.venv_new/lib/python3.12/site-packages/langchain_core/load/serializable.py:250: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    alias = this.model_fields[key].alias
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+====================== 55 passed, 344 warnings in 25.31s =======================
