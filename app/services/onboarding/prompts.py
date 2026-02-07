@@ -14,56 +14,61 @@ FIELDS TO EXTRACT WITH VALID OPTIONS:
 
 1. gender - Valid options: {gender_options}
    Map: "transgender"→others, "trans"→others, "m"→male, "f"→female
+   TYPOS: "mal"→male, "femal"→female, "mail"→male, "femle"→female, "dude"→male, "guy"→male, "gal"→female
 
 2. date_of_birth - Format: YYYY-MM-DD
-   Parse: "19th june 2000" → "2000-06-19"
+   Parse: "19th june 2000" → "2000-06-19", "born in 1990" → estimate as "1990-01-01"
 
 3. current_height - NUMBER ONLY (e.g., 175 or 70.8)
 4. current_height_unit - "cm" or "in"
    Convert: "5.9 feet" → height=70.8, unit="in", "175 cm" → height=175, unit="cm"
+   "5 foot 10" → height=70, unit="in"
 
 5. current_weight - NUMBER ONLY
 6. current_weight_unit - "kg" or "lb"
-   Extract: "80 kg" → weight=80, unit="kg"
+   TYPOS: "kilograms"→kg, "pounds"→lb, "kilos"→kg
 
 7. target_weight - NUMBER ONLY
 8. target_weight_unit - "kg" or "lb"
-   Extract: "70 kg" → weight=70, unit="kg"
 
 9. goal - Valid options: {goal_options}
-   Map: "lose" → lose_weight, "gain" → gain_weight
+   Map: "lose"→lose_weight, "gain"→gain_weight, "drop pounds"→lose_weight, "bulk"→gain_weight
+   TYPOS: "loose"→lose_weight, "wieght"→weight, "loose wieght"→lose_weight
 
 10. target_speed - Valid options: {speed_options}
-    Map: "quick"→fast, "moderate"→normal, "gradual"→slow
+    Map: "quick"→fast, "moderate pace"→normal, "gradual"→slow, "steady"→normal
 
 11. activity_level - Valid options: {activity_options}
-    Map: "very active"→active, "lightly active"→light
+    Map: "very active"→active, "lightly active"→light, "gym rat"→active, "couch potato"→sedentary
+    TYPOS: "moderete"→moderate, "activty"→activity, "sedantary"→sedentary
 
-12. macros_confirmed - true ONLY if user says yes/sure/looks good
+12. macros_confirmed - true ONLY if user says yes/sure/looks good/perfect/okay/👍
 
-44. age - NUMBER ONLY (e.g., 25)
-    If user says "I'm 25", extract age=25.
+13. age - NUMBER ONLY (e.g., 25)
+    If user says "I'm 25", "25 years old", "25 yeers old" → age=25
 
 14. dietary (RETURN AS ARRAY) - Valid options: {dietary_options}
-    CRITICAL: If user says "no"/"nope"/"nothing"/"nada"/"none" → return ["none"]
-    Example: User says "no" → {{"dietary": ["none"]}}
-    Example: User says "vegan" → {{"dietary": ["vegan"]}}
+    CRITICAL: If user says "no"/"nope"/"nothing"/"nada"/"none"/"no restrictions" → return ["none"]
+    Map: "celiac"→gluten_free, "lactose intolerant"→dairy_free, "allergic to nuts"→nut_free
+    STORY FORMAT: "I'm pescatarian actually" → ["pescatarian"]
+    Multiple: "I'm vegan and can't eat gluten" → ["vegan", "gluten_free"]
 
 CRITICAL RULES:
-1. Extract ONLY from the LAST user message, NOT from previous messages
-2. DO NOT extract fields that weren't mentioned in the last message
-3. DO NOT guess or infer fields not explicitly stated
-4. Interpret user intent - map variations to valid options
-5. For dietary: any negative response → ["none"]
-6. Return dietary as ARRAY: ["none"] or ["vegan", "dairy_free"]
-7. Return ONLY valid JSON
+1. Extract ONLY from the LAST user message
+2. DO NOT guess fields not mentioned
+3. Interpret TYPOS and SLANG generously - map to valid options
+4. For dietary: any negative response → ["none"]
+5. Return dietary as ARRAY: ["none"] or ["vegan", "dairy_free"]
+6. Return ONLY valid JSON
 
 Examples:
-User: "Transgender" → {{"gender": "others"}}
-User: "no" (when asked about dietary) → {{"dietary": ["none"]}}
-User: "80 kg" → {{"current_weight": 80, "current_weight_unit": "kg"}}
+User: "mal 30 yeers old" → {{"gender": "male", "age": 30}}
+User: "loose wieght" → {{"goal": "lose_weight"}}
+User: "pescatarian actually" → {{"dietary": ["pescatarian"]}}
+User: "5 foot 10, 180 lbs" → {{"current_height": 70, "current_height_unit": "in", "current_weight": 180, "current_weight_unit": "lb"}}
 
 Return: {{"field": "value"}}""".format(
+
     gender_options=", ".join(FIELD_OPTIONS["gender"]),
     goal_options=", ".join(FIELD_OPTIONS["goal"]),
     speed_options=", ".join(FIELD_OPTIONS["target_speed"]),

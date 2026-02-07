@@ -1,6 +1,7 @@
 """Core LLM module using LangChain and OpenAI."""
 
 import os
+import time
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
@@ -8,6 +9,41 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langchain_openai import ChatOpenAI
 
 load_dotenv()
+
+# Retry configuration
+MAX_RETRIES = 3
+BASE_DELAY = 0.5  # seconds
+
+
+def _should_retry(exception: Exception) -> bool:
+    """Check if the exception is retryable (rate limit or transient error)."""
+    error_str = str(exception).lower()
+    return any(phrase in error_str for phrase in ['429', 'rate limit', '503', '502', 'timeout'])
+
+
+def _call_llm_with_retry(llm: ChatOpenAI, messages: List[BaseMessage], streaming: bool) -> str:
+    """Call LLM with retry logic for rate limits and transient errors."""
+    last_exception = None
+    
+    for attempt in range(MAX_RETRIES):
+        try:
+            if streaming:
+                response_text = ""
+                for chunk in llm.stream(messages):
+                    response_text += chunk.content
+                return response_text
+            else:
+                return llm.invoke(messages).content
+        except Exception as e:
+            last_exception = e
+            if _should_retry(e) and attempt < MAX_RETRIES - 1:
+                delay = BASE_DELAY * (2 ** attempt)  # Exponential backoff
+                print(f"[LLM] Retry {attempt + 1}/{MAX_RETRIES} after {delay:.1f}s: {e}")
+                time.sleep(delay)
+            else:
+                raise
+    
+    raise last_exception
 
 
 def chatbot(
@@ -66,10 +102,5 @@ def chatbot(
 
     messages.append(HumanMessage(content=user_message))
 
-    if streaming:
-        response_text = ""
-        for chunk in llm.stream(messages):
-            response_text += chunk.content
-        return response_text
-    
-    return llm.invoke(messages).content
+    return _call_llm_with_retry(llm, messages, streaming)
+

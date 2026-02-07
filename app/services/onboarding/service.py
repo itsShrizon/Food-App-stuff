@@ -12,7 +12,7 @@ from .calculator import calculate_metabolic_profile
 
 def _extract_data_with_llm(
     conversation_history: List[Dict[str, str]],
-    model: str = "gpt-4.1-nano",
+    model: str = "gpt-4.1",
 ) -> Dict[str, Any]:
     """Extract data from conversation using LLM."""
     # Get the last assistant message and user message for context

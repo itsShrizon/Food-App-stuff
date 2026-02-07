@@ -43,6 +43,16 @@ def onboarding(
         dob = today - timedelta(days=extracted['age'] * 365)
         collected_data['date_of_birth'] = dob.strftime("%Y-%m-%d")
     
+    # Auto-fill target_weight for 'maintain' goal
+    if collected_data.get('goal') == 'maintain':
+        if 'target_weight' not in collected_data and 'current_weight' in collected_data:
+            collected_data['target_weight'] = collected_data['current_weight']
+            collected_data['target_weight_unit'] = collected_data.get('current_weight_unit', 'kg')
+    
+    # Default target_speed to 'normal' if not provided
+    if 'target_speed' not in collected_data and collected_data.get('goal'):
+        collected_data['target_speed'] = 'normal'
+    
     # Check for macro confirmation
     macros_shown = 'metabolic_profile' in collected_data and not collected_data.get('macros_confirmed')
     if macros_shown and is_confirmation(user_message):

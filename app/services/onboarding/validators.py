@@ -50,13 +50,24 @@ def _validate_activity_level(data: Dict[str, Any], validated: Dict[str, Any]) ->
     if 'activity_level' not in data:
         return
     level = str(data['activity_level']).lower().strip()
+    
+    # Extended mapping for conversational inputs
     level_map = {
-        'sedentary': 'sedentary', 'inactive': 'sedentary',
-        'light': 'light', 'lightly active': 'light', 'lightly': 'light',
-        'moderate': 'moderate', 'moderately active': 'moderate',
-        'active': 'active', 'very active': 'active', 'highly active': 'active',
+        'sedentary': 'sedentary', 'inactive': 'sedentary', 'desk': 'sedentary',
+        'office': 'sedentary', 'desk_job': 'sedentary', 'sitting': 'sedentary',
+        'light': 'light', 'lightly_active': 'light', 'lightly': 'light',
+        'some_exercise': 'light', 'walk': 'light', 'walking': 'light',
+        'moderate': 'moderate', 'moderately_active': 'moderate', 'regular': 'moderate',
+        'gym': 'moderate', 'workout': 'moderate', 'exercise': 'moderate',
+        'active': 'active', 'very_active': 'active', 'highly_active': 'active',
+        'athlete': 'active', 'sports': 'active', 'daily_exercise': 'active',
+        'run': 'active', 'running': 'active',
     }
-    level = level_map.get(level, level)
+    
+    # Normalize: replace spaces/hyphens with underscores
+    normalized = level.replace(' ', '_').replace('-', '_')
+    level = level_map.get(normalized, level_map.get(level, level))
+    
     if level in ACTIVITY_MULTIPLIERS:
         validated['activity_level'] = level
 
@@ -106,24 +117,35 @@ def _validate_dietary(data: Dict[str, Any], validated: Dict[str, Any]) -> None:
     
     validated_dietary = []
     for item in dietary:
-        item = str(item).lower().strip().replace(' ', '_').replace('-', '_')
+        item_str = str(item).lower().strip().replace(' ', '_').replace('-', '_')
         
-        # Map negative responses to 'none'
-        if item in ['none', 'no', 'nope', 'nothing', 'nada', 'n/a', 'na']:
+        # Expanded mapping for negative/none responses
+        none_phrases = [
+            'none', 'no', 'nope', 'nothing', 'nada', 'n/a', 'na', 'no_restrictions',
+            'nothing_really', 'not_really', 'nah', 'no_preferences', 'no_dietary',
+            'no_allergies', 'none_at_all', 'nothing_special', 'i_eat_everything',
+            'eat_everything', 'no_issues', 'no_food_allergies', 'all_good',
+        ]
+        if item_str in none_phrases or item_str.startswith('nothing') or item_str.startswith('no_'):
             validated_dietary.append('none')
             continue
             
         # Map common variations
         item_map = {
-            'dairy': 'dairy_free', 'no_dairy': 'dairy_free',
-            'no_gluten': 'gluten_free', 'gluten': 'gluten_free',
+            'dairy': 'dairy_free', 'no_dairy': 'dairy_free', 'lactose': 'dairy_free',
+            'lactose_intolerant': 'dairy_free', 'lactose_free': 'dairy_free',
+            'no_gluten': 'gluten_free', 'gluten': 'gluten_free', 'celiac': 'gluten_free',
+            'coeliac': 'gluten_free',
             'no_nut': 'nut_free', 'nut': 'nut_free', 'no_nuts': 'nut_free',
-            'pesc': 'pescatarian',
+            'nut_allergy': 'nut_free', 'peanut': 'nut_free', 'peanut_allergy': 'nut_free',
+            'pesc': 'pescatarian', 'fish_only': 'pescatarian',
+            'vegetarian': 'vegan',  # Close enough for flags
+            'plant_based': 'vegan',
         }
-        item = item_map.get(item, item)
+        item_str = item_map.get(item_str, item_str)
         
-        if item in DIETARY_PREFERENCE_FLAGS:
-            validated_dietary.append(item)
+        if item_str in DIETARY_PREFERENCE_FLAGS:
+            validated_dietary.append(item_str)
             
     if validated_dietary:
         validated['dietary'] = list(set(validated_dietary))
